@@ -1,0 +1,23 @@
+[project]
+name = "election-202602-shugiin"
+version = "0.1.0"
+description = "Election analysis workflows (data processing + PyMC modeling)"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "arviz>=0.20.0",
+  "geopandas>=1.0.0",
+  "graphviz>=0.20.3",
+  "ipykernel>=6.29.0",
+  "jupyterlab>=4.4.0",
+  "libpysal>=4.12.0",
+  "numpy>=2.0.0",
+  "openpyxl>=3.1.0",
+  "pandas>=2.2.0",
+  "pymc>=5.20.0",
+  "pytensor>=2.27.0",
+  "scikit-learn>=1.6.0",
+]
+
+[tool.uv]
+package = false
