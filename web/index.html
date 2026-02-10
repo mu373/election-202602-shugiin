@@ -1,0 +1,943 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Municipality Election Map</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <style>
+      :root {
+        --panel-width: 300px;
+        --bg: #f7f8f9;
+        --text: #1f2937;
+        --muted: #5f6b7a;
+        --border: #d4dae2;
+        --nodata: #b6b8bc;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+      .app {
+        position: relative;
+        height: 100vh;
+        width: 100vw;
+      }
+      .sidebar {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        z-index: 1000;
+        width: var(--panel-width);
+        max-height: calc(100vh - 28px);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.96);
+        backdrop-filter: blur(4px);
+        box-shadow: 0 10px 24px rgba(17, 24, 39, 0.14);
+        padding: 16px;
+        overflow: auto;
+      }
+      .sidebar h1 {
+        margin: 0 0 12px;
+        font-size: 18px;
+        line-height: 1.4;
+      }
+      .subtitle {
+        margin: -6px 0 12px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .sidebar label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .sidebar select {
+        width: 100%;
+        padding: 8px;
+        font-size: 14px;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        margin-bottom: 14px;
+      }
+      .sidebar input[type="checkbox"] {
+        margin-right: 8px;
+      }
+      .checkbox-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 14px;
+        font-size: 13px;
+        color: var(--text);
+      }
+      .control-group.hidden {
+        display: none;
+      }
+      .help {
+        margin-top: -8px;
+        margin-bottom: 12px;
+        font-size: 12px;
+        color: var(--muted);
+        line-height: 1.5;
+      }
+      .block-title {
+        margin: 10px 0 6px;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .legend-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 4px;
+        font-size: 12px;
+      }
+      .legend-gradient {
+        width: 100%;
+        height: 14px;
+        border-radius: 4px;
+        border: 1px solid #e5e7eb;
+        margin-bottom: 6px;
+      }
+      .legend-axis {
+        display: flex;
+        justify-content: space-between;
+        font-size: 11px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .legend-swatch {
+        width: 18px;
+        height: 12px;
+        border: 1px solid #e5e7eb;
+        margin-right: 8px;
+      }
+      .stats {
+        font-size: 13px;
+        line-height: 1.6;
+      }
+      .stats .name {
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .map-label {
+        background: transparent;
+        border: 0;
+        box-shadow: none;
+        color: #111827;
+        font-size: 10px;
+        font-weight: 600;
+        text-shadow:
+          0 0 2px rgba(255, 255, 255, 0.95),
+          0 0 4px rgba(255, 255, 255, 0.95);
+        pointer-events: none;
+      }
+      #map {
+        width: 100vw;
+        height: 100vh;
+      }
+      @media (max-width: 900px) {
+        .sidebar {
+          top: auto;
+          left: 10px;
+          right: 10px;
+          bottom: 10px;
+          width: auto;
+          max-height: 45vh;
+          border-radius: 10px;
+        }
+        #map {
+          width: 100vw;
+          height: 100vh;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="sidebar">
+        <h1 id="titleMain">2026 衆院選 比例代表マップ</h1>
+        <div id="titleSub" class="subtitle">政党得票率 / 市区町村</div>
+        <div class="control-group" id="groupPlotMode">
+          <label for="plotModeSelect">表示モード</label>
+          <select id="plotModeSelect">
+            <option value="share" selected>政党得票率</option>
+            <option value="rank">順位政党（第N位）</option>
+          </select>
+        </div>
+        <div class="control-group" id="groupGranularity">
+          <label for="granularitySelect">表示単位</label>
+          <select id="granularitySelect">
+            <option value="block">ブロック</option>
+            <option value="muni" selected>市区町村</option>
+          </select>
+        </div>
+        <div class="control-group" id="groupParty">
+          <label for="partySelect">政党</label>
+          <select id="partySelect"></select>
+        </div>
+        <div class="control-group" id="groupScaleMode">
+          <label for="scaleMode">色スケール</label>
+          <select id="scaleMode">
+            <option value="fixed">固定スケール（全国比較）</option>
+            <option value="party">政党別スケール（濃淡強調）</option>
+          </select>
+        </div>
+        <div class="control-group" id="groupRank">
+          <label for="rankSelect">順位（N）</label>
+          <select id="rankSelect"></select>
+        </div>
+        <div class="control-group" id="groupLabels">
+          <label class="checkbox-row" for="labelToggle">
+            <input id="labelToggle" type="checkbox" />
+            地名ラベル表示
+          </label>
+        </div>
+        <div class="help">固定: 政党間で同じ基準。政党別: 選択中政党内で濃淡を見やすく調整。</div>
+
+        <div class="block-title">凡例（得票率）</div>
+        <div id="legend"></div>
+
+        <div class="block-title">統計</div>
+        <div id="stats" class="stats"></div>
+      </aside>
+      <main id="map"></main>
+    </div>
+
+    <script
+      src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""
+    ></script>
+    <script>
+      const COLORS = [
+        "#fff7ec",
+        "#fee8c8",
+        "#fdd49e",
+        "#fdbb84",
+        "#fc8d59",
+        "#ef6548",
+        "#d7301f",
+        "#4a0000",
+      ];
+      const FIXED_BREAKS = [0, 0.02, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4];
+      const NODATA_COLOR = "#b6b8bc";
+      const PARTY_QUANTILES = [0, 0.1, 0.25, 0.4, 0.55, 0.7, 0.85, 0.95];
+      const PARTY_COLOR_MAP = {
+        jimin: "#a5002d",
+        chudou: "#1f5fbf",
+        mirai: "#64d8c6",
+        ishin: "#8dc21f",
+        kokumin: "#f8bc00",
+        kyosan: "#d7000f",
+        sanseito: "#f39800",
+        hoshu: "#55c3f1",
+        shamin: "#007bc3",
+        reiwa: "#e4007f",
+        genzei_yuukoku: "#0f4c81",
+        anrakushi: "#6b7280",
+      };
+      const DEFAULT_PARTY_PALETTE = [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+      ];
+
+      const canvasRenderer = L.canvas({ padding: 0.5 });
+      const map = L.map("map", {
+        preferCanvas: true,
+        renderer: canvasRenderer,
+        zoomControl: false,
+      }).setView([36.5, 138], 5);
+      L.control.zoom({ position: "bottomleft" }).addTo(map);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", {
+        attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+        subdomains: "abcd",
+        maxZoom: 18,
+      }).addTo(map);
+
+      const partySelect = document.getElementById("partySelect");
+      const scaleModeSelect = document.getElementById("scaleMode");
+      const granularitySelect = document.getElementById("granularitySelect");
+      const plotModeSelect = document.getElementById("plotModeSelect");
+      const rankSelect = document.getElementById("rankSelect");
+      const labelToggle = document.getElementById("labelToggle");
+      const groupParty = document.getElementById("groupParty");
+      const groupScaleMode = document.getElementById("groupScaleMode");
+      const groupRank = document.getElementById("groupRank");
+      const titleSub = document.getElementById("titleSub");
+      const legendEl = document.getElementById("legend");
+      const statsEl = document.getElementById("stats");
+      const helpEl = document.querySelector(".help");
+
+      let geoLayer = null;
+      let electionData = {};
+      let parties = [];
+      let partyNameByCode = {};
+      let partyColorByCode = {};
+      let geojsonByGranularity = { muni: null, block: null };
+      let prefToBlock = {};
+      let prefAgg = {};
+      let blockAgg = {};
+      let currentGranularity = "muni";
+      let labelsVisible = false;
+      let activeBreaks = [...FIXED_BREAKS];
+      let activeMax = 1.0;
+
+      function clamp01(v) {
+        return Math.max(0, Math.min(1, v));
+      }
+
+      function hexToRgb(hex) {
+        const h = hex.replace("#", "");
+        const norm = h.length === 3 ? h.split("").map((c) => `${c}${c}`).join("") : h;
+        return {
+          r: Number.parseInt(norm.slice(0, 2), 16),
+          g: Number.parseInt(norm.slice(2, 4), 16),
+          b: Number.parseInt(norm.slice(4, 6), 16),
+        };
+      }
+
+      function rgbToHex({ r, g, b }) {
+        const toHex = (x) => x.toString(16).padStart(2, "0");
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+      }
+
+      function interpolateColor(t) {
+        const tt = clamp01(t);
+        const scaled = tt * (COLORS.length - 1);
+        const i = Math.floor(scaled);
+        const frac = scaled - i;
+        const c1 = hexToRgb(COLORS[i]);
+        const c2 = hexToRgb(COLORS[Math.min(i + 1, COLORS.length - 1)]);
+        return rgbToHex({
+          r: Math.round(c1.r + (c2.r - c1.r) * frac),
+          g: Math.round(c1.g + (c2.g - c1.g) * frac),
+          b: Math.round(c1.b + (c2.b - c1.b) * frac),
+        });
+      }
+
+      function getColor(share, maxValue) {
+        if (share == null || Number.isNaN(share)) return NODATA_COLOR;
+        const t = maxValue > 0 ? clamp01(share / maxValue) : 0;
+        return interpolateColor(t);
+      }
+
+      function pct(x) {
+        if (x == null || Number.isNaN(x)) return "N/A";
+        return `${(x * 100).toFixed(1)}%`;
+      }
+
+      function pctLabel(x) {
+        return `${(x * 100).toFixed(1)}%`;
+      }
+
+      function quantile(sortedValues, q) {
+        if (!sortedValues.length) return 0;
+        const pos = (sortedValues.length - 1) * q;
+        const base = Math.floor(pos);
+        const rest = pos - base;
+        const left = sortedValues[base];
+        const right = sortedValues[base + 1] ?? left;
+        return left + rest * (right - left);
+      }
+
+      function partyColor(code) {
+        return partyColorByCode[code] || "#9ca3af";
+      }
+
+      function buildPartyColorMap() {
+        partyColorByCode = {};
+        const sortedCodes = parties.map((p) => p.code).sort();
+        let paletteIdx = 0;
+        for (const code of sortedCodes) {
+          if (PARTY_COLOR_MAP[code]) {
+            partyColorByCode[code] = PARTY_COLOR_MAP[code];
+            continue;
+          }
+          partyColorByCode[code] = DEFAULT_PARTY_PALETTE[paletteIdx % DEFAULT_PARTY_PALETTE.length];
+          paletteIdx += 1;
+        }
+      }
+
+      function buildPartyBreaks(partyCode) {
+        const shares = getSharesForCurrentGranularity(partyCode).sort((a, b) => a - b);
+        if (!shares.length) return [...FIXED_BREAKS];
+        const breaks = PARTY_QUANTILES.map((q) => quantile(shares, q));
+        breaks[0] = 0;
+        for (let i = 1; i < breaks.length; i += 1) {
+          if (breaks[i] < breaks[i - 1]) breaks[i] = breaks[i - 1];
+        }
+        return breaks;
+      }
+
+      function computeActiveScale() {
+        const mode = scaleModeSelect.value;
+        const selectedPartyCode = partySelect.value;
+        if (mode === "party") {
+          activeBreaks = buildPartyBreaks(selectedPartyCode);
+          activeMax = activeBreaks[7] > 0 ? activeBreaks[7] : 0.01;
+        } else {
+          activeBreaks = [...FIXED_BREAKS];
+          activeMax = 1.0;
+        }
+      }
+
+      function updateLegend() {
+        if (plotModeSelect.value === "rank") {
+          const rank = Number.parseInt(rankSelect.value, 10) || 1;
+          const counts = {};
+          const geo = geojsonByGranularity[granularitySelect.value];
+          for (const feature of geo?.features || []) {
+            const ranked = getRankedPartiesForFeature(feature);
+            const p = ranked[rank - 1];
+            if (p) counts[p.code] = (counts[p.code] || 0) + 1;
+          }
+          const rankedParties = Object.entries(counts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10);
+          legendEl.innerHTML = "";
+          for (const [code, nAreas] of rankedParties) {
+            const row = document.createElement("div");
+            row.className = "legend-row";
+            row.innerHTML = `<span class="legend-swatch" style="background:${partyColor(code)}"></span>${partyNameByCode[code] || code} (${nAreas})`;
+            legendEl.appendChild(row);
+          }
+          const noDataRow = document.createElement("div");
+          noDataRow.className = "legend-row";
+          noDataRow.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>データなし`;
+          legendEl.appendChild(noDataRow);
+          return;
+        }
+
+        const gradientStops = COLORS.map((c, i) => `${c} ${(i / (COLORS.length - 1)) * 100}%`).join(", ");
+        legendEl.innerHTML = `
+          <div class="legend-gradient" style="background: linear-gradient(to right, ${gradientStops});"></div>
+          <div class="legend-axis">
+            <span>0%</span><span>${pctLabel(activeMax / 2)}</span><span>${pctLabel(activeMax)}</span>
+          </div>
+        `;
+        const noData = document.createElement("div");
+        noData.className = "legend-row";
+        noData.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>データなし`;
+        legendEl.appendChild(noData);
+      }
+
+      function getShare(muniCode, partyCode) {
+        const rec = electionData[muniCode];
+        if (!rec || !rec.parties) return null;
+        const v = rec.parties[partyCode];
+        return typeof v === "number" ? v : null;
+      }
+
+      function getAggregateShare(agg, partyCode) {
+        if (!agg || !agg.valid_votes || !agg.party_votes) return null;
+        const partyVotes = agg.party_votes[partyCode];
+        if (typeof partyVotes !== "number" || Number.isNaN(partyVotes)) return null;
+        return partyVotes / agg.valid_votes;
+      }
+
+      function getFeatureStats(feature, partyCode) {
+        const granularity = granularitySelect.value;
+        if (granularity === "muni") {
+          const muniCode = String(feature.properties.muni_code || "").padStart(5, "0");
+          const rec = electionData[muniCode] || {};
+          return {
+            label: `${rec.name || feature.properties.muni_name || ""}`,
+            share: getShare(muniCode, partyCode),
+            validVotes: rec.valid_votes ?? null,
+          };
+        }
+        const blockName = feature.properties.block_name;
+        const agg = blockAgg[blockName];
+        return {
+          label: blockName || "ブロック",
+          share: getAggregateShare(agg, partyCode),
+          validVotes: agg ? agg.valid_votes : null,
+        };
+      }
+
+      function getRankedPartiesForFeature(feature) {
+        const granularity = granularitySelect.value;
+        if (granularity === "muni") {
+          const muniCode = String(feature.properties.muni_code || "").padStart(5, "0");
+          const rec = electionData[muniCode] || {};
+          return Object.entries(rec.parties || {})
+            .filter(([, share]) => typeof share === "number" && !Number.isNaN(share))
+            .map(([code, share]) => ({ code, share, votes: (rec.valid_votes || 0) * share }))
+            .sort((a, b) => b.share - a.share);
+        }
+
+        const agg = blockAgg[feature.properties.block_name];
+        if (!agg || !agg.valid_votes) return [];
+        return Object.entries(agg.party_votes || {})
+          .filter(([, votes]) => typeof votes === "number" && !Number.isNaN(votes) && votes > 0)
+          .map(([code, votes]) => ({ code, votes, share: votes / agg.valid_votes }))
+          .sort((a, b) => b.share - a.share);
+      }
+
+      function getFeatureRenderStats(feature) {
+        if (plotModeSelect.value === "rank") {
+          const rank = Number.parseInt(rankSelect.value, 10) || 1;
+          const ranked = getRankedPartiesForFeature(feature);
+          const chosen = ranked[rank - 1] || null;
+          const base = getFeatureStats(feature, partySelect.value);
+          const partyCode = chosen ? chosen.code : null;
+          return {
+            ...base,
+            rank,
+            share: chosen ? chosen.share : null,
+            partyCode,
+            partyName: partyCode ? (partyNameByCode[partyCode] || partyCode) : null,
+          };
+        }
+
+        const partyCode = partySelect.value;
+        const base = getFeatureStats(feature, partyCode);
+        return {
+          ...base,
+          partyCode,
+          partyName: partyNameByCode[partyCode] || partyCode,
+        };
+      }
+
+      function getSharesForCurrentGranularity(partyCode) {
+        const granularity = granularitySelect.value;
+        if (granularity === "muni") {
+          return Object.values(electionData)
+            .map((rec) => rec?.parties?.[partyCode])
+            .filter((x) => typeof x === "number" && !Number.isNaN(x));
+        }
+        return Object.values(blockAgg)
+          .map((agg) => getAggregateShare(agg, partyCode))
+          .filter((x) => typeof x === "number" && !Number.isNaN(x));
+      }
+
+      function buildAggregates() {
+        prefAgg = {};
+        blockAgg = {};
+        for (const rec of Object.values(electionData)) {
+          const prefName = rec.pref;
+          const validVotes = Number(rec.valid_votes);
+          if (!prefName || !Number.isFinite(validVotes) || validVotes <= 0) continue;
+          if (!prefAgg[prefName]) {
+            prefAgg[prefName] = { valid_votes: 0, party_votes: {} };
+          }
+          prefAgg[prefName].valid_votes += validVotes;
+          for (const [partyCode, share] of Object.entries(rec.parties || {})) {
+            if (typeof share !== "number" || Number.isNaN(share)) continue;
+            const addVotes = share * validVotes;
+            prefAgg[prefName].party_votes[partyCode] =
+              (prefAgg[prefName].party_votes[partyCode] || 0) + addVotes;
+          }
+        }
+
+        for (const [prefName, agg] of Object.entries(prefAgg)) {
+          const blockName = prefToBlock[prefName];
+          if (!blockName) continue;
+          if (!blockAgg[blockName]) {
+            blockAgg[blockName] = { valid_votes: 0, party_votes: {} };
+          }
+          blockAgg[blockName].valid_votes += agg.valid_votes;
+          for (const [partyCode, votes] of Object.entries(agg.party_votes)) {
+            blockAgg[blockName].party_votes[partyCode] =
+              (blockAgg[blockName].party_votes[partyCode] || 0) + votes;
+          }
+        }
+      }
+
+      function getFeatureLabelText(feature) {
+        const granularity = granularitySelect.value;
+        if (granularity === "muni") {
+          const muniCode = String(feature.properties.muni_code || "").padStart(5, "0");
+          const rec = electionData[muniCode] || {};
+          return `${rec.name || feature.properties.muni_name || ""}`.trim();
+        }
+        if (granularity === "pref") {
+          return feature.properties.pref_name || "";
+        }
+        return feature.properties.block_name || "";
+      }
+
+      function isLatLngPoint(v) {
+        return v && typeof v.lat === "number" && typeof v.lng === "number";
+      }
+
+      function ringAreaApprox(ring) {
+        if (!Array.isArray(ring) || ring.length < 3) return 0;
+        let area = 0;
+        for (let i = 0; i < ring.length; i += 1) {
+          const p1 = ring[i];
+          const p2 = ring[(i + 1) % ring.length];
+          area += (p1.lng * p2.lat) - (p2.lng * p1.lat);
+        }
+        return Math.abs(area / 2);
+      }
+
+      function getLabelAnchor(layer) {
+        try {
+          const latlngs = layer.getLatLngs?.();
+          if (!Array.isArray(latlngs) || !latlngs.length) {
+            return layer.getBounds().getCenter();
+          }
+
+          let polygons = [];
+          if (isLatLngPoint(latlngs[0])) {
+            polygons = [[latlngs]];
+          } else if (Array.isArray(latlngs[0]) && isLatLngPoint(latlngs[0][0])) {
+            polygons = [latlngs];
+          } else {
+            polygons = latlngs;
+          }
+
+          let bestOuterRing = null;
+          let bestArea = -1;
+          for (const poly of polygons) {
+            const outerRing = Array.isArray(poly) ? poly[0] : null;
+            const area = ringAreaApprox(outerRing);
+            if (area > bestArea && outerRing) {
+              bestArea = area;
+              bestOuterRing = outerRing;
+            }
+          }
+
+          if (bestOuterRing && bestOuterRing.length >= 3) {
+            return L.polygon(bestOuterRing).getCenter();
+          }
+          return layer.getBounds().getCenter();
+        } catch (_err) {
+          return layer.getBounds().getCenter();
+        }
+      }
+
+      function updateLabels() {
+        if (!geoLayer) return;
+        const granularity = granularitySelect.value;
+        const zoom = map.getZoom();
+
+        const policy = (() => {
+          if (granularity === "block") return { minZoom: 4, maxLabels: 30 };
+          if (zoom >= 11) return { minZoom: 11, maxLabels: 300 };
+          if (zoom >= 10) return { minZoom: 10, maxLabels: 180 };
+          if (zoom >= 9) return { minZoom: 9, maxLabels: 90 };
+          return { minZoom: 99, maxLabels: 0 };
+        })();
+
+        const clearAll = () => {
+          geoLayer.eachLayer((layer) => {
+            if (layer.getTooltip()) layer.unbindTooltip();
+          });
+        };
+
+        if (!labelsVisible || zoom < policy.minZoom) {
+          clearAll();
+          return;
+        }
+
+        const viewBounds = map.getBounds().pad(0.15);
+        const candidates = [];
+        geoLayer.eachLayer((layer) => {
+          if (!layer.feature || !layer.getBounds) return;
+          const b = layer.getBounds();
+          const center = b.getCenter();
+          if (!viewBounds.contains(center)) {
+            if (layer.getTooltip()) layer.unbindTooltip();
+            return;
+          }
+          const areaWeight = Math.abs((b.getEast() - b.getWest()) * (b.getNorth() - b.getSouth()));
+          candidates.push({ layer, areaWeight });
+        });
+
+        candidates.sort((a, b) => b.areaWeight - a.areaWeight);
+        const selected = new Set(candidates.slice(0, policy.maxLabels).map((x) => x.layer));
+
+        geoLayer.eachLayer((layer) => {
+          if (!selected.has(layer)) {
+            if (layer.getTooltip()) layer.unbindTooltip();
+            return;
+          }
+          const label = getFeatureLabelText(layer.feature);
+          if (!label) return;
+          const anchor = getLabelAnchor(layer);
+          const existing = layer.getTooltip();
+          if (!existing || existing.getContent() !== label) {
+            if (existing) layer.unbindTooltip();
+            layer.bindTooltip(label, {
+              permanent: true,
+              direction: "center",
+              className: "map-label",
+              opacity: 0.95,
+            });
+            layer.openTooltip(anchor);
+          } else if (anchor) {
+            layer.openTooltip(anchor);
+          }
+        });
+      }
+
+      function renderGeoLayer() {
+        const granularity = granularitySelect.value;
+        const geo = geojsonByGranularity[granularity];
+        if (!geo) return;
+        if (geoLayer) {
+          map.removeLayer(geoLayer);
+        }
+        geoLayer = L.geoJSON(geo, {
+          renderer: canvasRenderer,
+          style: featureStyle,
+          onEachFeature,
+        }).addTo(map);
+        currentGranularity = granularity;
+        updateLabels();
+      }
+
+      function featureStyle(feature) {
+        const stats = getFeatureRenderStats(feature);
+        const fillColor = plotModeSelect.value === "rank"
+          ? (stats.partyCode ? partyColor(stats.partyCode) : NODATA_COLOR)
+          : getColor(stats.share, activeMax);
+        return {
+          fillColor,
+          weight: 0.4,
+          color: "#626b75",
+          opacity: 1,
+          fillOpacity: 0.8,
+        };
+      }
+
+      function onEachFeature(feature, layer) {
+        layer.on({
+          mouseover: (e) => {
+            e.target.setStyle({ weight: 1.3, color: "#1f2937" });
+            e.target.bringToFront();
+          },
+          mouseout: (e) => {
+            geoLayer.resetStyle(e.target);
+          },
+          click: (e) => {
+            const stats = getFeatureRenderStats(feature);
+            const popup = plotModeSelect.value === "rank"
+              ? `
+                <strong>${stats.label}</strong><br>
+                順位: 第${stats.rank}位<br>
+                政党: ${stats.partyName || "N/A"}<br>
+                得票率: ${pct(stats.share)}<br>
+                有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}
+              `
+              : `
+                <strong>${stats.label}</strong><br>
+                政党: ${stats.partyName || "N/A"}<br>
+                得票率: ${pct(stats.share)}<br>
+                有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}
+              `;
+            e.target.bindPopup(popup).openPopup();
+          },
+        });
+      }
+
+      function updateStats() {
+        if (plotModeSelect.value === "rank") {
+          const rank = Number.parseInt(rankSelect.value, 10) || 1;
+          const counts = {};
+          const geo = geojsonByGranularity[granularitySelect.value];
+          for (const feature of geo?.features || []) {
+            const ranked = getRankedPartiesForFeature(feature);
+            const p = ranked[rank - 1];
+            if (p) counts[p.code] = (counts[p.code] || 0) + 1;
+          }
+          const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+          statsEl.innerHTML = `
+            <div class="name">第${rank}位の政党</div>
+            <div>表示単位: ${
+              granularitySelect.value === "muni" ? "市区町村" : "ブロック"
+            }</div>
+            <div>最多: ${top ? (partyNameByCode[top[0]] || top[0]) : "N/A"}</div>
+            <div>件数: ${top ? top[1].toLocaleString() : 0}</div>
+          `;
+          return;
+        }
+
+        const selectedCode = partySelect.value;
+        const summary = parties.find((p) => p.code === selectedCode);
+        if (!summary) return;
+        statsEl.innerHTML = `
+          <div class="name">${summary.name}</div>
+          <div>全国得票数: ${summary.total_votes.toLocaleString()} 票</div>
+          <div>市区町村数: ${summary.municipalities.toLocaleString()}</div>
+        `;
+      }
+
+      function recolor() {
+        if (!geoLayer) return;
+        if (plotModeSelect.value === "share") {
+          computeActiveScale();
+        }
+        updateLegend();
+        geoLayer.setStyle(featureStyle);
+        updateLabels();
+        updateStats();
+      }
+
+      function populatePartySelect() {
+        partySelect.innerHTML = "";
+        for (const p of parties) {
+          const option = document.createElement("option");
+          option.value = p.code;
+          option.textContent = p.name;
+          partySelect.appendChild(option);
+        }
+      }
+
+      function populateRankSelect() {
+        rankSelect.innerHTML = "";
+        const maxRank = Math.max(parties.length, 1);
+        for (let r = 1; r <= maxRank; r += 1) {
+          const option = document.createElement("option");
+          option.value = String(r);
+          option.textContent = `第${r}位`;
+          rankSelect.appendChild(option);
+        }
+      }
+
+      function updateControlVisibility() {
+        const isRank = plotModeSelect.value === "rank";
+        groupParty.classList.toggle("hidden", isRank);
+        groupScaleMode.classList.toggle("hidden", isRank);
+        groupRank.classList.toggle("hidden", !isRank);
+        helpEl.textContent = isRank
+          ? "各地域で第N位の政党を色分け表示します。"
+          : "固定: 政党間で同じ基準。政党別: 選択中政党内で濃淡を見やすく調整。";
+      }
+
+      function updateTitle() {
+        const granularityLabel = granularitySelect.value === "muni"
+          ? "市区町村" : "ブロック";
+        if (plotModeSelect.value === "rank") {
+          const rank = Number.parseInt(rankSelect.value, 10) || 1;
+          titleSub.textContent = `順位政党（第${rank}位） / ${granularityLabel}`;
+        } else {
+          titleSub.textContent = `政党得票率 / ${granularityLabel}`;
+        }
+      }
+
+      function readStateFromUrl() {
+        const params = new URLSearchParams(window.location.search);
+        const qParty = params.get("party");
+        const qScale = params.get("scale");
+        const qGranularity = params.get("granularity");
+        const qMode = params.get("mode");
+        const qRank = params.get("rank");
+        const qLabels = params.get("labels");
+        if (qParty && parties.some((p) => p.code === qParty)) {
+          partySelect.value = qParty;
+        }
+        if (qScale && (qScale === "fixed" || qScale === "party")) {
+          scaleModeSelect.value = qScale;
+        }
+        if (qGranularity && (qGranularity === "block" || qGranularity === "muni")) {
+          granularitySelect.value = qGranularity;
+        } else if (qGranularity === "pref") {
+          granularitySelect.value = "muni";
+        }
+        if (qMode && (qMode === "share" || qMode === "rank")) {
+          plotModeSelect.value = qMode;
+        }
+        if (qRank) {
+          const rankNum = Number.parseInt(qRank, 10);
+          if (Number.isInteger(rankNum) && rankNum >= 1 && rankNum <= parties.length) {
+            rankSelect.value = String(rankNum);
+          }
+        }
+        if (qLabels === "1" || qLabels === "true") {
+          labelsVisible = true;
+          labelToggle.checked = true;
+        }
+      }
+
+      function writeStateToUrl() {
+        const url = new URL(window.location.href);
+        url.searchParams.set("party", partySelect.value);
+        url.searchParams.set("scale", scaleModeSelect.value);
+        url.searchParams.set("granularity", granularitySelect.value);
+        url.searchParams.set("mode", plotModeSelect.value);
+        url.searchParams.set("rank", rankSelect.value);
+        url.searchParams.set("labels", labelsVisible ? "1" : "0");
+        window.history.replaceState({}, "", url);
+      }
+
+      function handleControlChange() {
+        labelsVisible = labelToggle.checked;
+        if (geoLayer && granularitySelect.value !== currentGranularity) {
+          renderGeoLayer();
+        }
+        updateControlVisibility();
+        updateTitle();
+        writeStateToUrl();
+        recolor();
+      }
+
+      async function init() {
+        const [muniGeojson, prefGeojson, blockGeojson, election, partyList] = await Promise.all([
+          fetch("./data/municipalities.geojson").then((r) => r.json()),
+          fetch("./data/prefectures.geojson").then((r) => r.json()),
+          fetch("./data/blocks.geojson").then((r) => r.json()),
+          fetch("./data/election_data.json").then((r) => r.json()),
+          fetch("./data/parties.json").then((r) => r.json()),
+        ]);
+
+        geojsonByGranularity = {
+          muni: muniGeojson,
+          block: blockGeojson,
+        };
+        electionData = election;
+        parties = partyList;
+        partyNameByCode = Object.fromEntries(parties.map((p) => [p.code, p.name]));
+        buildPartyColorMap();
+        for (const f of prefGeojson.features || []) {
+          if (f?.properties?.pref_name && f?.properties?.block_name) {
+            prefToBlock[f.properties.pref_name] = f.properties.block_name;
+          }
+        }
+        buildAggregates();
+        populatePartySelect();
+        populateRankSelect();
+        readStateFromUrl();
+        updateControlVisibility();
+        updateTitle();
+        renderGeoLayer();
+
+        partySelect.addEventListener("change", handleControlChange);
+        scaleModeSelect.addEventListener("change", handleControlChange);
+        granularitySelect.addEventListener("change", handleControlChange);
+        plotModeSelect.addEventListener("change", handleControlChange);
+        rankSelect.addEventListener("change", handleControlChange);
+        labelToggle.addEventListener("change", handleControlChange);
+        map.on("zoomend", updateLabels);
+        map.on("moveend", updateLabels);
+        writeStateToUrl();
+        recolor();
+      }
+
+      init().catch((err) => {
+        console.error(err);
+        statsEl.innerHTML = "データ読み込みに失敗しました。";
+      });
+    </script>
+  </body>
+</html>
