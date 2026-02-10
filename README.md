@@ -2,6 +2,8 @@
 
 第51回衆議院議員選挙（令和8年2月8日執行）
 
+Coming soon: 階層ベイズによる政党得票率予測 with PyMC
+
 ## 主要データ
 
 | データ | 概要 | データソース |
@@ -13,6 +15,8 @@
 | [隣接行列（小選挙区）](https://github.com/mu373/election-202602-shugiin/blob/main/data/processed/adj_district.npz) | 空間隣接行列 | [gtfs-gis.jp](https://gtfs-gis.jp/senkyoku/)（小選挙区ポリゴン）に基づき作成 |
 | [小選挙区・比例ブロック対応マスター](https://github.com/mu373/election-202602-shugiin/blob/main/data/master/district_master.csv) | 選挙区・比例ブロック対応 | [gtfs-gis.jp](https://gtfs-gis.jp/senkyoku/)・総務省など |
 | 小選挙区/市区町村ポリゴン | 地図・空間結合用 | [gtfs-gis.jp](https://gtfs-gis.jp/senkyoku/) / 国土数値情報 N03 |
+
+「比例代表 市区町村別・党派別得票」データは、AI agent (Claude Code/Codex) を用いて各選挙管理委員会ホームページより取得・変換したものです。
 
 ## ライセンス
 
