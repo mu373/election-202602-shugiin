@@ -1,0 +1,22 @@
+{
+  "pref_code": 32,
+  "pref_name": "島根県",
+  "status": "complete",
+  "source_url": "https://www1.pref.shimane.lg.jp/contents/shichoson/51sousenkyo/51sokuhou/kakutei/hirei_kakutei_kenkei.html",
+  "source_files": [
+    "hirei_kakutei_shi.html",
+    "hirei_kakutei_kanoashi.html",
+    "hirei_kakutei_nita.html",
+    "hirei_kakutei_oki.html",
+    "hirei_kakutei_iishi.html",
+    "hirei_kakutei_oochi.html"
+  ],
+  "format": "HTML (Shift_JIS, multiple pages)",
+  "parties_count": 10,
+  "municipalities_count": 19,
+  "total_votes": 290610,
+  "soumu_total": 290610,
+  "verification": "MATCH",
+  "bloc": "中国",
+  "notes": "Data from 島根県選挙管理委員会 開票速報. Data split across 6 HTML pages by city/county grouping. Shift_JIS encoded."
+}

@@ -1,0 +1,21 @@
+{
+  "pref_code": 4,
+  "pref_name": "宮城県",
+  "status": "success",
+  "source_url": "https://senkyo-sokuhou.pref.miyagi.jp/shuugi-koukai/HTML/kaihyoc_hi.html",
+  "format": "html",
+  "municipalities_found": 39,
+  "parties_found": [
+    "れいわ新選組",
+    "中道改革連合",
+    "自由民主党",
+    "参政党",
+    "日本共産党",
+    "社会民主党",
+    "チームみらい",
+    "国民民主党",
+    "日本保守党",
+    "日本維新の会"
+  ],
+  "notes": "Data from HTML table on Miyagi election speed report site (Shift_JIS encoding). 10 parties in Tohoku block. All 39 municipalities (5 Sendai wards + 13 other cities + 21 towns/villages) extracted. Valid votes also available in source."
+}

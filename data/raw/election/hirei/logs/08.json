@@ -1,0 +1,22 @@
+{
+  "pref_code": 8,
+  "pref_name": "茨城県",
+  "status": "success",
+  "source_url": "https://www.pref.ibaraki.jp/somu/shichoson/senkyo/documents/ah_kaihyo_k_011.xlsx",
+  "format": "excel",
+  "municipalities_found": 44,
+  "parties_found": [
+    "れいわ新選組",
+    "チームみらい",
+    "中道改革連合",
+    "参政党",
+    "国民民主党",
+    "日本保守党",
+    "日本共産党",
+    "日本維新の会",
+    "減税日本・ゆうこく連合",
+    "社会民主党",
+    "自由民主党"
+  ],
+  "notes": "Data from 確定 (00:48) file. 11 parties in 北関東ブロック."
+}

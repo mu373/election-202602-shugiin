@@ -1,0 +1,15 @@
+{
+  "pref_code": 34,
+  "pref_name": "広島県",
+  "status": "complete",
+  "source_url": "https://www.pref.hiroshima.lg.jp/site/sennkyokannriiinkai/senkyosokuhou.html",
+  "source_file": "https://www.pref.hiroshima.lg.jp/senkyo/sokuho114.html",
+  "format": "HTML (Shift_JIS)",
+  "parties_count": 10,
+  "municipalities_count": 30,
+  "total_votes": 1107320,
+  "soumu_total": 1107320,
+  "verification": "MATCH",
+  "bloc": "中国",
+  "notes": "Data from 広島県選挙管理委員会 投開票速報. HTML page with 3 table sections (4+4+2 parties per section). 広島市 broken down into 8 行政区 (中区, 東区, 南区, 西区, 安佐南区, 安佐北区, 安芸区, 佐伯区). Also available as PDF at /uploaded/attachment/653562.pdf."
+}

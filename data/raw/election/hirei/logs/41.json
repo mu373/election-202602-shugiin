@@ -1,0 +1,31 @@
+{
+  "pref_code": 41,
+  "pref_name": "佐賀県",
+  "status": "completed",
+  "source_url": "https://www.pref.saga.lg.jp/kiji003117947/index.html",
+  "data_url": "https://www.pref.saga.lg.jp/kiji003117947/3_117947_up_ccz3qltu.pdf",
+  "data_format": "pdf",
+  "source_type": "prefectural_election_commission",
+  "election_name": "第51回衆議院議員総選挙",
+  "election_date": "2026-02-08",
+  "data_type": "比例代表_市区町村別_党派別得票数",
+  "municipalities_count": 20,
+  "parties_count": 11,
+  "bloc": "九州",
+  "parties": [
+    "れいわ新選組",
+    "日本保守党",
+    "自由民主党",
+    "中道改革連合",
+    "減税日本・ゆうこく連合",
+    "チームみらい",
+    "社会民主党",
+    "日本維新の会",
+    "参政党",
+    "国民民主党",
+    "日本共産党"
+  ],
+  "notes": "PDF extracted via pdfplumber. PDF requires Referer header to download. 11 parties ran in 九州ブロック.",
+  "output_file": "data/raw/election/41_佐賀県.csv",
+  "scraped_at": "2026-02-09T21:31:30.113090"
+}

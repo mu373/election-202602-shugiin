@@ -1,0 +1,15 @@
+{
+  "pref_code": 35,
+  "pref_name": "山口県",
+  "status": "complete",
+  "source_url": "https://www.pref.yamaguchi.lg.jp/site/senkyo/334303.html",
+  "source_file": "https://www.pref.yamaguchi.lg.jp/uploaded/attachment/231200.xlsx",
+  "format": "Excel (.xlsx)",
+  "parties_count": 10,
+  "municipalities_count": 19,
+  "total_votes": 595334,
+  "soumu_total": 595334,
+  "verification": "MATCH",
+  "bloc": "中国",
+  "notes": "Data from 山口県選挙管理委員会. Excel file with 党派別開票区別得票数. Published at 4:15 on Feb 9."
+}

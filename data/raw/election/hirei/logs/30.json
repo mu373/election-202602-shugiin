@@ -1,0 +1,26 @@
+{
+  "pref_code": 30,
+  "pref_name": "和歌山県",
+  "status": "completed",
+  "source_url": "https://www.pref.wakayama.lg.jp/prefg/010600/wsenkan/R8_shu.html",
+  "source_file": "http://wave.pref.wakayama.lg.jp/news/file/44286_1.xls",
+  "source_format": "Excel (.xls, actually .xlsx)",
+  "extraction_method": "openpyxl Excel parsing",
+  "parties_found": [
+    "社会民主党",
+    "日本共産党",
+    "参政党",
+    "れいわ新選組",
+    "中道改革連合",
+    "チームみらい",
+    "国民民主党",
+    "自由民主党",
+    "日本保守党",
+    "日本維新の会",
+    "減税日本・ゆうこく連合"
+  ],
+  "municipalities_count": 30,
+  "total_votes": 416219,
+  "notes": "30 municipalities (9 cities + 21 towns/villages). Data was published on わかやま県政ニュース. 安楽死制度を考える会 ran in 近畿ブロック but not listed in prefecture data.",
+  "timestamp": "2026-02-09T21:32:29.563204"
+}

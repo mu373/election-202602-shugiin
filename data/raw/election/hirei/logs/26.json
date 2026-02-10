@@ -1,0 +1,26 @@
+{
+  "pref_code": 26,
+  "pref_name": "京都府",
+  "status": "completed",
+  "source_url": "https://www.pref.kyoto.jp/senkyo/r8shugiinsokuhou.html",
+  "source_file": "https://www.pref.kyoto.jp/senkyo/documents/hireikaihyokekka20260208.pdf",
+  "source_format": "PDF",
+  "extraction_method": "pdfplumber table extraction",
+  "parties_found": [
+    "社会民主党",
+    "日本共産党",
+    "参政党",
+    "れいわ新選組",
+    "中道改革連合",
+    "チームみらい",
+    "国民民主党",
+    "自由民主党",
+    "日本保守党",
+    "日本維新の会",
+    "減税日本・ゆうこく連合"
+  ],
+  "municipalities_count": 36,
+  "total_votes": 1119154,
+  "notes": "36 municipalities including 11 京都市 wards (行政区). 安楽死制度を考える会 ran in 近畿ブロック but not listed in prefecture data.",
+  "timestamp": "2026-02-09T21:32:29.563204"
+}

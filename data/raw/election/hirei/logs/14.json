@@ -1,0 +1,22 @@
+{
+  "pref_code": 14,
+  "pref_name": "神奈川県",
+  "status": "success",
+  "source_url": "https://www.pref.kanagawa.jp/documents/128371/k.xlsx",
+  "format": "excel",
+  "municipalities_found": 58,
+  "parties_found": [
+    "れいわ新選組",
+    "中道改革連合",
+    "日本維新の会",
+    "参政党",
+    "国民民主党",
+    "日本保守党",
+    "チームみらい",
+    "社会民主党",
+    "自由民主党",
+    "日本共産党",
+    "減税日本・ゆうこく連合"
+  ],
+  "notes": "Data from 神奈川県選挙管理委員会 投開票速報ページ. 58 municipalities at 行政区 level (横浜市18区, 川崎市7区, 相模原市3区 + 19市 + 8町 + 1村 + 2町=58). 南関東ブロック: 11 parties. Excel file 'k.xlsx' is the final confirmed results (確定). All data successfully extracted."
+}

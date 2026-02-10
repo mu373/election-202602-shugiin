@@ -1,0 +1,26 @@
+{
+  "pref_code": 29,
+  "pref_name": "奈良県",
+  "status": "completed",
+  "source_url": "https://www.pref.nara.jp/71327.htm",
+  "source_file": "https://www.pref.nara.jp/secure/332414/hireikaihyokekkakaihyokutoha.pdf",
+  "source_format": "PDF (CID-encoded fonts)",
+  "extraction_method": "pdfplumber table extraction + custom CID number decoding + manual municipality name mapping",
+  "parties_found": [
+    "社会民主党",
+    "日本共産党",
+    "参政党",
+    "れいわ新選組",
+    "中道改革連合",
+    "チームみらい",
+    "国民民主党",
+    "自由民主党",
+    "日本保守党",
+    "日本維新の会",
+    "減税日本・ゆうこく連合"
+  ],
+  "municipalities_count": 39,
+  "total_votes": 674358,
+  "notes": "39 municipalities (12 cities + 15 towns + 12 villages). PDF used non-standard CID font encoding; numbers decoded via cross-referencing with Nara City website data. Municipality names mapped by structural position in PDF tables. 奈良市 has 2 開票区 (第１/第２) but was aggregated to city level. 安楽死制度を考える会 ran in 近畿ブロック but not listed in prefecture data.",
+  "timestamp": "2026-02-09T21:32:29.563204"
+}

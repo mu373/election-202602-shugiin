@@ -1,0 +1,22 @@
+{
+  "pref_code": 16,
+  "pref_name": "富山県",
+  "status": "success",
+  "source_url": "https://www.pref.toyama.jp/sections/0500/r8syu/アップ用/Toy_衆_比例代表最終結果.xlsx",
+  "format": "excel",
+  "municipalities_found": 15,
+  "parties_found": [
+    "日本共産党",
+    "日本保守党",
+    "国民民主党",
+    "自由民主党",
+    "社会民主党",
+    "れいわ新選組",
+    "参政党",
+    "中道改革連合",
+    "日本維新の会",
+    "安楽死制度を考える会",
+    "減税日本・ゆうこく連合"
+  ],
+  "notes": "Data from 富山県選挙管理委員会 投開票速報ページ. 15 municipalities (10市 + 1村 + 2町 + 2町 = 15). 富山市 has two 開票区(第1/第2) but aggregated as 富山市 in output. 北陸信越ブロック: 11 parties."
+}

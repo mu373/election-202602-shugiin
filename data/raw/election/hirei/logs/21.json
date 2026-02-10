@@ -1,0 +1,22 @@
+{
+  "pref_code": 21,
+  "pref_name": "岐阜県",
+  "status": "success",
+  "source_url": "https://www.pref.gifu.lg.jp/uploaded/attachment/484805.xlsx",
+  "format": "excel",
+  "municipalities_found": 42,
+  "parties_found": [
+    "国民民主党",
+    "チームみらい",
+    "自由民主党",
+    "中道改革連合",
+    "日本維新の会",
+    "日本保守党",
+    "日本共産党",
+    "れいわ新選組",
+    "参政党",
+    "社会民主党",
+    "減税日本・ゆうこく連合"
+  ],
+  "notes": "Final results (確定). All 42 municipalities extracted."
+}

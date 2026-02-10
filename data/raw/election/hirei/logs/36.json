@@ -1,0 +1,15 @@
+{
+  "pref_code": 36,
+  "pref_name": "徳島県",
+  "status": "complete",
+  "source_url": "https://www.pref.tokushima.lg.jp/kenseijoho/senkyo/7243438/",
+  "source_file": "https://www.pref.tokushima.lg.jp/file/attachment/1035116.xlsx",
+  "format": "Excel (.xlsx)",
+  "parties_count": 9,
+  "municipalities_count": 24,
+  "total_votes": 316497,
+  "soumu_total": 316497,
+  "verification": "MATCH",
+  "bloc": "四国",
+  "notes": "Data from 徳島県選挙管理委員会 投開票速報. Excel file. 四国ブロック has 9 parties (no 減税日本・ゆうこく連合). Party order in source: 日本保守党, 中道改革連合, 参政党, 日本共産党, 日本維新の会, 国民民主党, 社会民主党, 自由民主党, れいわ新選組."
+}

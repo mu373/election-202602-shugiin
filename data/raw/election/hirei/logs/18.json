@@ -1,0 +1,22 @@
+{
+  "pref_code": 18,
+  "pref_name": "福井県",
+  "status": "success",
+  "source_url": "https://www.pref.fukui.lg.jp/doc/senkan/51shuuinsen/51toukaihyousokuhou_d/fil/kaku_hi_touha.pdf",
+  "format": "pdf",
+  "municipalities_found": 17,
+  "parties_found": [
+    "日本共産党",
+    "日本保守党",
+    "国民民主党",
+    "自由民主党",
+    "社会民主党",
+    "れいわ新選組",
+    "参政党",
+    "中道改革連合",
+    "日本維新の会",
+    "安楽死制度を考える会",
+    "減税日本・ゆうこく連合"
+  ],
+  "notes": "Data from 福井県選挙管理委員会 投開票速報ページ. PDF format manually extracted. 17 municipalities (9市 + 8町). 北陸信越ブロック: 11 parties. PDF had 2 pages: 党派別開票区別得票数."
+}

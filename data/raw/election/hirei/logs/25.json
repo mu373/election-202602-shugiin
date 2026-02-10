@@ -1,0 +1,26 @@
+{
+  "pref_code": 25,
+  "pref_name": "滋賀県",
+  "status": "completed",
+  "source_url": "https://www.pref.shiga.lg.jp/senkyo/kokusei/syuugiin/348217.html",
+  "source_file": "https://www.pref.shiga.lg.jp/file/attachment/5590118.pdf",
+  "source_format": "PDF",
+  "extraction_method": "pdfplumber table extraction",
+  "parties_found": [
+    "社会民主党",
+    "日本共産党",
+    "参政党",
+    "れいわ新選組",
+    "中道改革連合",
+    "チームみらい",
+    "国民民主党",
+    "自由民主党",
+    "日本保守党",
+    "日本維新の会",
+    "減税日本・ゆうこく連合"
+  ],
+  "municipalities_count": 19,
+  "total_votes": 648280,
+  "notes": "All 19 municipalities (13 cities + 6 towns) extracted successfully. 安楽死制度を考える会 ran in 近畿ブロック but not listed in prefecture data.",
+  "timestamp": "2026-02-09T21:32:29.563204"
+}

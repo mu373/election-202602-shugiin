@@ -1,0 +1,21 @@
+{
+  "pref_code": 7,
+  "pref_name": "福島県",
+  "status": "success",
+  "source_url": "http://www.pref.fukushima.jp/senkan/51shuuin/sokuhou/20260208/xlsx/KO01.xlsx",
+  "format": "excel",
+  "municipalities_found": 59,
+  "parties_found": [
+    "れいわ新選組",
+    "チームみらい",
+    "中道改革連合",
+    "参政党",
+    "国民民主党",
+    "日本保守党",
+    "日本共産党",
+    "日本維新の会",
+    "社会民主党",
+    "自由民主党"
+  ],
+  "notes": "Data from KO01.xlsx. 10 parties found in 東北ブロック比例代表. Only parties that ran in this block are included."
+}

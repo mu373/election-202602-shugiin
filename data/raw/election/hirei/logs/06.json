@@ -1,0 +1,21 @@
+{
+  "pref_code": 6,
+  "pref_name": "山形県",
+  "status": "success",
+  "source_url": "https://www.elec.pref.yamagata.jp/sokuhou/dl/kaihyoujyoukyou-hirei2440.zip",
+  "format": "excel",
+  "municipalities_found": 35,
+  "parties_found": [
+    "れいわ新選組",
+    "中道改革連合",
+    "自由民主党",
+    "参政党",
+    "日本共産党",
+    "社会民主党",
+    "チームみらい",
+    "国民民主党",
+    "日本保守党",
+    "日本維新の会"
+  ],
+  "notes": "Data from official ZIP download from Yamagata special election site containing Excel files. 10 parties in Tohoku block. All 35 municipalities (13 cities + 22 towns/villages) extracted."
+}

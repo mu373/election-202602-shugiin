@@ -1,0 +1,26 @@
+{
+  "pref_code": 28,
+  "pref_name": "兵庫県",
+  "status": "completed",
+  "source_url": "https://senkyo.pref.hyogo.lg.jp/sokuhou/",
+  "source_file": "https://senkyo.pref.hyogo.lg.jp/uploads/k-hirei7_1JwxRPgKPq.pdf",
+  "source_format": "PDF",
+  "extraction_method": "pdfplumber table extraction",
+  "parties_found": [
+    "社会民主党",
+    "日本共産党",
+    "参政党",
+    "れいわ新選組",
+    "中道改革連合",
+    "チームみらい",
+    "国民民主党",
+    "自由民主党",
+    "日本保守党",
+    "日本維新の会",
+    "減税日本・ゆうこく連合"
+  ],
+  "municipalities_count": 49,
+  "total_votes": 2466549,
+  "notes": "49 municipalities including 9 神戸市 wards. 姫路市/西宮市/川西市 have multiple 開票区 but were aggregated to city level. 安楽死制度を考える会 ran in 近畿ブロック but not listed in prefecture data.",
+  "timestamp": "2026-02-09T21:32:29.563204"
+}

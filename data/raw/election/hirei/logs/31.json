@@ -1,0 +1,15 @@
+{
+  "pref_code": 31,
+  "pref_name": "鳥取県",
+  "status": "complete",
+  "source_url": "https://www.pref.tottori.lg.jp/326953.htm",
+  "source_file": "https://www.pref.tottori.lg.jp/secure/1415109/hire_toku_0209.htm",
+  "format": "HTML",
+  "parties_count": 10,
+  "municipalities_count": 19,
+  "total_votes": 207035,
+  "soumu_total": 207035,
+  "verification": "MATCH",
+  "bloc": "中国",
+  "notes": "Data from 鳥取県選挙管理委員会 比例代表得票状況 page. HTML file with Shift_JIS encoding. Confirmed 02:09 on Feb 9."
+}

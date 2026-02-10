@@ -1,0 +1,21 @@
+{
+  "pref_code": 5,
+  "pref_name": "秋田県",
+  "status": "success",
+  "source_url": "https://www.pref.akita.lg.jp/pages/archive/93658",
+  "format": "excel",
+  "municipalities_found": 25,
+  "parties_found": [
+    "れいわ新選組",
+    "中道改革連合",
+    "自由民主党",
+    "参政党",
+    "日本共産党",
+    "社会民主党",
+    "チームみらい",
+    "国民民主党",
+    "日本保守党",
+    "日本維新の会"
+  ],
+  "notes": "Data from official ZIP download containing Excel files. 10 parties in Tohoku block. All 25 municipalities (13 cities + 12 towns/villages) extracted."
+}

@@ -1,0 +1,15 @@
+{
+  "pref_code": 33,
+  "pref_name": "岡山県",
+  "status": "complete",
+  "source_url": "https://www.pref.okayama.jp/page/1018636.html",
+  "source_file": "https://www.pref.okayama.jp/uploaded/attachment/405301.xlsx",
+  "format": "Excel (.xlsx)",
+  "parties_count": 10,
+  "municipalities_count": 30,
+  "total_votes": 804502,
+  "soumu_total": 804502,
+  "verification": "MATCH",
+  "bloc": "中国",
+  "notes": "Data from 岡山県選挙管理委員会. Excel file with 党派別開票区別得票数. 岡山市 broken down into 4 行政区 (北区, 中区, 東区, 南区)."
+}

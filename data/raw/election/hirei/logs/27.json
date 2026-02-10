@@ -1,0 +1,26 @@
+{
+  "pref_code": 27,
+  "pref_name": "大阪府",
+  "status": "completed",
+  "source_url": "https://www.pref.osaka.lg.jp/o190010/senkan/r8syuugiinsenkyo/toukaihyou.html",
+  "source_file": "https://www.pref.osaka.lg.jp/documents/125389/2-4kaihyoukekka_hirei.xlsx",
+  "source_format": "Excel (.xlsx)",
+  "extraction_method": "openpyxl Excel parsing",
+  "parties_found": [
+    "社会民主党",
+    "日本共産党",
+    "参政党",
+    "れいわ新選組",
+    "中道改革連合",
+    "チームみらい",
+    "国民民主党",
+    "自由民主党",
+    "日本保守党",
+    "日本維新の会",
+    "減税日本・ゆうこく連合"
+  ],
+  "municipalities_count": 72,
+  "total_votes": 4023115,
+  "notes": "72 municipalities including 24 大阪市 wards and 7 堺市 wards. 安楽死制度を考える会 ran in 近畿ブロック but not listed in prefecture data.",
+  "timestamp": "2026-02-09T21:32:29.563204"
+}
