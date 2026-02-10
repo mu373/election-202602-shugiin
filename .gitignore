@@ -1,3 +1,5 @@
+.DS_Store
+
 # Large/re-downloadable data (download via download_all.sh)
 data/raw/gis/
 data/raw/census/
