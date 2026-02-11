@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import {
   plotModeSelect,
   partySelect,
+  scaleModeSelect,
   rankSelect,
   granularitySelect,
   compareTargetSelect,
