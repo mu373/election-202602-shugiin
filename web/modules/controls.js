@@ -93,6 +93,10 @@ export function updateControlVisibility() {
   const isMuni = granularitySelect.value === "muni";
   const showModeHelp = isAnyRankMode() || isSelectedVsTop || isRulingVsOpposition || isConcentration || isWinnerMargin || isNationalDivergence;
   groupParty.classList.toggle("hidden", isRank || isConcentration || isWinnerMargin || isRulingVsOpposition || isNationalDivergence);
+  const partyLabelEl = document.querySelector('label[for="partySelect"]');
+  if (partyLabelEl) {
+    partyLabelEl.textContent = isSelectedVsTop ? "基準政党" : "政党";
+  }
   groupCompareTarget.classList.toggle("hidden", !isSelectedVsTop);
   groupSelectedMetric.classList.toggle("hidden", !isSelectedVsTop);
   selectedMetricHelpEl?.classList.toggle("hidden", !isSelectedVsTop);
