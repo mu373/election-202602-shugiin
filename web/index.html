@@ -14,6 +14,34 @@
   </head>
   <body>
     <div class="app">
+      <div class="top-actions">
+        <a
+          class="action-button"
+          href="https://github.com/mu373/election-202602-shugiin"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="GitHub リポジトリを開く"
+          title="GitHub"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path
+              fill="currentColor"
+              d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.5-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.22 2.2.82a7.65 7.65 0 0 1 4 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"
+            />
+          </svg>
+        </a>
+        <button
+          id="infoButton"
+          class="action-button info-button"
+          type="button"
+          aria-label="データ・出典情報を表示"
+          aria-haspopup="dialog"
+          aria-expanded="false"
+          title="データ・出典"
+        >
+          i
+        </button>
+      </div>
       <aside class="sidebar">
         <h1 id="titleMain">第51回衆議院議員選挙</br>比例区得票マップ</h1>
         <div class="control-group" id="groupPlotMode">
@@ -98,6 +126,36 @@
         <div class="block-title">統計</div>
         <div id="stats" class="stats"></div>
       </aside>
+      <div id="infoModal" class="info-modal" hidden>
+        <div
+          class="info-modal-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="infoTitle"
+        >
+          <div class="info-modal-header">
+            <h2 id="infoTitle">データ・出典情報</h2>
+            <button id="infoCloseButton" class="info-close" type="button" aria-label="閉じる">×</button>
+          </div>
+          <div class="info-modal-content">
+            <p>第51回衆議院議員選挙（令和8年2月8日執行）の比例区の得票データを可視化しています。</p>
+            <p>比例代表 市区町村別・党派別得票データは、AIエージェントを用いて各都道府県選挙管理委員会サイトから取得・変換しています。</p>
+            <h3>主要データ</h3>
+            <ul>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/data/processed/hirei_shikuchouson.csv" target="_blank" rel="noopener noreferrer">比例代表 市区町村別・党派別得票</a></li>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/data/municipalities.geojson" target="_blank" rel="noopener noreferrer">市区町村境界</a>（<a href="https://nlftp.mlit.go.jp/ksj/" target="_blank" rel="noopener noreferrer">国土数値情報 N03 2025</a>）</li>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/data/prefectures.geojson" target="_blank" rel="noopener noreferrer">都道府県境界</a>（<a href="https://nlftp.mlit.go.jp/ksj/" target="_blank" rel="noopener noreferrer">国土数値情報 N03 2025</a>）</li>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/data/blocks.geojson" target="_blank" rel="noopener noreferrer">比例ブロック境界</a>（都道府県境界を集約して作成）</li>
+            </ul>
+            <h3>ライセンス</h3>
+            <ul>
+              <li>コード: MIT</li>
+              <li>データ: CC0 1.0（特記なき場合）</li>
+              <li>加工元データ: 提供元の利用条件に準拠</li>
+            </ul>
+          </div>
+        </div>
+      </div>
       <main id="map"></main>
     </div>
 
@@ -106,6 +164,6 @@
       integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
       crossorigin=""
     ></script>
-    <script src="./app.js"></script>
+    <script type="module" src="./app.js"></script>
   </body>
 </html>
