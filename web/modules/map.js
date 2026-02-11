@@ -95,7 +95,7 @@ export function featureStyle(feature) {
     weight: 0.4,
     color: "#626b75",
     opacity: 1,
-    fillOpacity: 0.8,
+    fillOpacity: isRankMode() ? 0.55 : 0.8,
   };
 }
 
