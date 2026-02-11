@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""空間隣接行列の構築（Queen contiguity: 選挙区289区 + 市区町村約1,900）
+"""空間隣接行列の構築（Queen contiguity）
 
 入力: data/raw/gis/senkyoku2022/senkyoku2022.shp（選挙区ポリゴン）
       data/raw/gis/N03_2025/N03-20250101.shp（市区町村ポリゴン）
 出力: data/processed/adj_district.npz + adj_district_nodes.csv（選挙区隣接行列）
       data/processed/adj_muni.npz + adj_muni_nodes.csv（市区町村隣接行列）
+      data/processed/adj_pref.npz + adj_pref_nodes.csv（都道府県隣接行列）
+      data/processed/adj_block.npz + adj_block_nodes.csv（比例ブロック隣接行列）
 """
 
-import sys
+import argparse
 import time
 import numpy as np
 import pandas as pd
@@ -21,6 +23,18 @@ from muni_code_canonical import EXCLUDE_CODES
 BASE = Path(__file__).resolve().parent.parent.parent
 GIS = BASE / "data" / "raw" / "gis"
 OUT = BASE / "data" / "processed"
+DISTRICT_MASTER = BASE / "data" / "master" / "district_master.csv"
+
+
+def parse_args() -> argparse.Namespace:
+    p = argparse.ArgumentParser(description="Build Queen adjacency matrices.")
+    p.add_argument(
+        "--type",
+        choices=["all", "district", "muni", "pref", "block"],
+        default="all",
+        help="Which adjacency to build (default: all)",
+    )
+    return p.parse_args()
 
 
 def build_district_adjacency():
@@ -178,17 +192,124 @@ def build_muni_adjacency():
     return W_sparse, nodes
 
 
+def _load_muni_polygons():
+    """Load and dissolve municipality polygons with canonical exclusions applied."""
+    shp = GIS / "N03_2025" / "N03-20250101.shp"
+    gdf = gpd.read_file(shp)
+    gdf["muni_code"] = gdf["N03_007"]
+    gdf["pref_code"] = gdf["muni_code"].astype(str).str[:2]
+    gdf["muni_name"] = gdf["N03_004"].fillna("") + gdf["N03_005"].fillna("")
+    gdf["pref_name"] = gdf["N03_001"].fillna("")
+
+    gdf_dissolved = gdf.dissolve(by="muni_code", as_index=False, aggfunc="first")
+    gdf_dissolved = gdf_dissolved.sort_values("muni_code").reset_index(drop=True)
+    gdf_dissolved = gdf_dissolved[~gdf_dissolved["muni_code"].isin(EXCLUDE_CODES)].copy()
+    gdf_dissolved = gdf_dissolved.reset_index(drop=True)
+    return gdf_dissolved
+
+
+def build_pref_adjacency():
+    """Build Queen contiguity for 47 prefectures from municipality polygons."""
+    print()
+    print("=" * 60)
+    print("Prefecture adjacency")
+    print("=" * 60)
+
+    t0 = time.time()
+    print("Loading municipality polygons...")
+    gdf_muni = _load_muni_polygons()
+
+    print("Dissolving by pref_code...")
+    gdf_pref = gdf_muni.dissolve(by="pref_code", as_index=False, aggfunc="first")
+    gdf_pref = gdf_pref.sort_values("pref_code").reset_index(drop=True)
+
+    # Keep only prefectures present in district_master (01-47)
+    pref_master = pd.read_csv(DISTRICT_MASTER, dtype={"pref_code": str})[["pref_code"]].drop_duplicates()
+    pref_master["pref_code"] = pref_master["pref_code"].str.zfill(2)
+    gdf_pref = gdf_pref.merge(pref_master, on="pref_code", how="inner")
+    gdf_pref = gdf_pref.sort_values("pref_code").reset_index(drop=True)
+
+    n = len(gdf_pref)
+    print(f"  Prefectures: {n}")
+    assert n == 47, f"Expected 47 prefectures, got {n}"
+
+    print("Computing Queen contiguity...")
+    w = Queen.from_dataframe(gdf_pref, use_index=False)
+    print(f"  Neighbors: min={w.min_neighbors}, max={w.max_neighbors}, mean={w.mean_neighbors:.1f}")
+
+    W_sparse = w.sparse.tocsr()
+    sparse.save_npz(OUT / "adj_pref.npz", W_sparse)
+    print(f"  Saved: adj_pref.npz ({W_sparse.nnz} nonzeros)")
+
+    nodes = gdf_pref[["pref_code", "pref_name"]].copy()
+    nodes.index.name = "idx"
+    nodes.to_csv(OUT / "adj_pref_nodes.csv", encoding="utf-8")
+    print("  Saved: adj_pref_nodes.csv")
+    print(f"  Elapsed: {time.time() - t0:.1f}s")
+    return W_sparse, nodes
+
+
+def build_block_adjacency():
+    """Build Queen contiguity for 11 PR blocks via prefecture-to-block dissolve."""
+    print()
+    print("=" * 60)
+    print("Block adjacency")
+    print("=" * 60)
+
+    t0 = time.time()
+    print("Loading municipality polygons...")
+    gdf_muni = _load_muni_polygons()
+
+    print("Dissolving to prefectures...")
+    gdf_pref = gdf_muni.dissolve(by="pref_code", as_index=False, aggfunc="first")
+    gdf_pref = gdf_pref.sort_values("pref_code").reset_index(drop=True)
+
+    pref_block = pd.read_csv(DISTRICT_MASTER, dtype={"pref_code": str})[
+        ["pref_code", "block_id", "block_name"]
+    ].drop_duplicates()
+    pref_block["pref_code"] = pref_block["pref_code"].str.zfill(2)
+
+    gdf_pref = gdf_pref.merge(pref_block, on="pref_code", how="inner")
+    if gdf_pref["block_id"].isna().any():
+        raise ValueError("Missing block_id for some prefectures in block adjacency build")
+
+    print("Dissolving by block_id...")
+    gdf_block = gdf_pref.dissolve(by="block_id", as_index=False, aggfunc="first")
+    gdf_block = gdf_block.sort_values("block_id").reset_index(drop=True)
+
+    n = len(gdf_block)
+    print(f"  Blocks: {n}")
+    assert n == 11, f"Expected 11 blocks, got {n}"
+
+    print("Computing Queen contiguity...")
+    w = Queen.from_dataframe(gdf_block, use_index=False)
+    print(f"  Neighbors: min={w.min_neighbors}, max={w.max_neighbors}, mean={w.mean_neighbors:.1f}")
+
+    W_sparse = w.sparse.tocsr()
+    sparse.save_npz(OUT / "adj_block.npz", W_sparse)
+    print(f"  Saved: adj_block.npz ({W_sparse.nnz} nonzeros)")
+
+    nodes = gdf_block[["block_id", "block_name"]].copy()
+    nodes.index.name = "idx"
+    nodes.to_csv(OUT / "adj_block_nodes.csv", encoding="utf-8")
+    print("  Saved: adj_block_nodes.csv")
+    print(f"  Elapsed: {time.time() - t0:.1f}s")
+    return W_sparse, nodes
+
+
 def main():
+    args = parse_args()
     OUT.mkdir(parents=True, exist_ok=True)
 
-    # 1. Electoral districts (fast)
-    W_dist, nodes_dist = build_district_adjacency()
-
-    # 2. Municipalities (slower due to large shapefile)
-    if "--district-only" in sys.argv:
-        print("\nSkipping municipality adjacency (--district-only)")
-    else:
-        W_muni, nodes_muni = build_muni_adjacency()
+    target = args.type
+    if target in {"all", "district"}:
+        build_district_adjacency()
+    if target in {"all", "muni"}:
+        build_muni_adjacency()
+    if target in {"all", "pref"}:
+        build_pref_adjacency()
+    if target in {"all", "block"}:
+        build_block_adjacency()
 
     print()
     print("=" * 60)
