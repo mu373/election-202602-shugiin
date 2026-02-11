@@ -65,6 +65,12 @@ body {
 .info-button {
   font-family: Georgia, "Times New Roman", serif;
 }
+.x-share-button {
+  font-size: 18px;
+}
+.x-share-button i {
+  line-height: 1;
+}
 .info-modal {
   position: absolute;
   inset: 0;

@@ -32,6 +32,19 @@ const MODE_DESCRIPTIONS = {
   concentration: "値が高いほど一党集中、低いほど多党分散",
 };
 
+function initShareXButton() {
+  const shareXButton = document.getElementById("shareXButton");
+  if (!shareXButton) return;
+  shareXButton.addEventListener("click", () => {
+    const panelTitle = "第51回衆院選 比例区得票マップ";
+    const modeLabel = (legendModeLabel?.textContent || "").trim();
+    const text = modeLabel ? `${panelTitle} | ${modeLabel}` : panelTitle;
+    const url = new URL(window.location.href);
+    const shareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url.toString())}`;
+    window.open(shareUrl, "_blank", "noopener,noreferrer");
+  });
+}
+
 function updateModeLabel() {
   const mode = plotModeSelect.value;
   const modeText = plotModeSelect.options[plotModeSelect.selectedIndex]?.textContent || "";
@@ -162,6 +175,7 @@ function handleControlChange() {
 
 async function init() {
   initDomRefs();
+  initShareXButton();
   initMap();
 
   const [muniGeojson, prefGeojson, blockGeojson, election, partyList] = await Promise.all([

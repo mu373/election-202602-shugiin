@@ -4,17 +4,44 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>第51回衆院選比例区得票マップ</title>
+    <meta name="description" content="第51回衆議院議員選挙の比例区得票データを地図で可視化。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="第51回衆院選 比例区得票マップ" />
+    <meta property="og:title" content="第51回衆院選 比例区得票マップ" />
+    <meta property="og:description" content="第51回衆議院議員選挙の比例区得票データを地図で可視化。" />
+    <meta property="og:url" content="https://election-202602-shugiin.vercel.app/hirei" />
+    <meta property="og:image" content="https://election-202602-shugiin.vercel.app/images/ogp_hirei.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="第51回衆院選 比例区得票マップ" />
+    <meta name="twitter:description" content="第51回衆議院議員選挙の比例区得票データを地図で可視化。" />
+    <meta name="twitter:image" content="https://election-202602-shugiin.vercel.app/images/ogp_hirei.png" />
     <link
       rel="stylesheet"
       href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+      integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app">
       <div class="top-actions">
+        <button
+          id="shareXButton"
+          class="action-button x-share-button"
+          type="button"
+          aria-label="X で共有"
+          title="X で共有"
+        >
+          <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
+        </button>
         <a
           class="action-button"
           href="https://github.com/mu373/election-202602-shugiin"
