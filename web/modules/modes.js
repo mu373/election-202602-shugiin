@@ -66,6 +66,10 @@ export function isConcentrationMode() {
   return plotModeSelect.value === "concentration";
 }
 
+export function isWinnerMarginMode() {
+  return plotModeSelect.value === "winner_margin";
+}
+
 export function isNationalDivergenceMode() {
   return plotModeSelect.value === "js_divergence";
 }
@@ -203,6 +207,24 @@ export function getRulingOppositionDiffForFeature(feature) {
     gap: rulingShare - oppositionShare,
     rulingShare,
     oppositionShare,
+  };
+}
+
+export function getWinnerMarginForFeature(feature) {
+  const ranked = getRankedPartiesForFeature(feature, null);
+  if (ranked.length < 2) {
+    return {
+      margin: null,
+      winner: null,
+      runnerUp: null,
+    };
+  }
+  const winner = ranked[0];
+  const runnerUp = ranked[1];
+  return {
+    margin: winner.share - runnerUp.share,
+    winner,
+    runnerUp,
   };
 }
 
@@ -369,6 +391,22 @@ export function getFeatureRenderStats(feature) {
     };
   }
 
+  if (isWinnerMarginMode()) {
+    const base = getFeatureStats(feature, partySelect.value);
+    const top2 = getWinnerMarginForFeature(feature);
+    return {
+      ...base,
+      share: top2.margin,
+      margin: top2.margin,
+      winnerPartyCode: top2.winner?.code ?? null,
+      winnerPartyName: top2.winner ? (state.partyNameByCode[top2.winner.code] || top2.winner.code) : null,
+      winnerShare: top2.winner?.share ?? null,
+      runnerUpPartyCode: top2.runnerUp?.code ?? null,
+      runnerUpPartyName: top2.runnerUp ? (state.partyNameByCode[top2.runnerUp.code] || top2.runnerUp.code) : null,
+      runnerUpShare: top2.runnerUp?.share ?? null,
+    };
+  }
+
   if (isNationalDivergenceMode()) {
     const base = getFeatureStats(feature, partySelect.value);
     const nationalDivergence = getNationalDivergenceForFeature(feature);
@@ -423,10 +461,11 @@ export function buildPartyRankPopupRows(feature, selectedCode, compareTargetCode
   if (!ranked.length) return "順位データ: N/A";
   return ranked
     .map((p, idx) => {
+      const isTopTwo = idx < 2;
       const isSelected = p.code === selectedCode;
       const isCompareTarget = compareTargetCode && p.code === compareTargetCode;
       const label = `第${idx + 1}位 ${state.partyNameByCode[p.code] || p.code}: ${pct(p.share)}`;
-      return (isSelected || isCompareTarget) ? `<strong>${label}</strong>` : label;
+      return (isTopTwo || isSelected || isCompareTarget) ? `<strong>${label}</strong>` : label;
     })
     .join("<br>");
 }
@@ -438,6 +477,18 @@ export function getSelectedVsTopValuesForCurrentGranularity(selectedPartyCode, c
     const v = getSelectedValueForFeature(feature, selectedPartyCode, compareTargetMode, metricMode);
     if (typeof v.value === "number" && !Number.isNaN(v.value)) {
       values.push(v.value);
+    }
+  }
+  return values;
+}
+
+export function getWinnerMarginValuesForCurrentGranularity() {
+  const geo = state.geojsonByGranularity[granularitySelect.value];
+  const values = [];
+  for (const feature of geo?.features || []) {
+    const top2 = getWinnerMarginForFeature(feature);
+    if (typeof top2.margin === "number" && !Number.isNaN(top2.margin)) {
+      values.push(top2.margin);
     }
   }
   return values;

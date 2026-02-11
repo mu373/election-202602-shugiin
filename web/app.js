@@ -29,6 +29,7 @@ const MODE_DESCRIPTIONS = {
   opposition_rank: "自民党を除いた第N位の政党を示します",
   selected_diff: "二つの政党の得票率の差・比を示します",
   ruling_vs_opposition: "与党（自民+維新）と野党（その他）の得票率比較を示します",
+  winner_margin: "値が小さいほど接戦、値が大きいほど1位が優勢です。",
   concentration: "値が高いほど一党集中、低いほど多党分散を示します",
   js_divergence: "政党投票構成の全国平均からの乖離度を示します。値が0に近いほど全国平均に近く、値が高いほど違いが大きくなります。",
 };
@@ -72,8 +73,10 @@ function updateModeLabel() {
     const rankN = rankSelect.value || "1";
     label = "野党第" + rankN + "党";
     desc = "自民党を除いた第" + rankN + "位の政党";
+  } else if (mode === "winner_margin") {
+    label = "上位2党の得票率差（接戦度）";
   } else if (mode === "js_divergence") {
-    label = "モード: 政党投票構成の全国平均からの乖離度";
+    label = "政党投票構成の全国平均からの乖離度";
   }
   legendModeLabel.textContent = label;
   legendModeDesc.textContent = desc;
@@ -127,6 +130,20 @@ function recolor() {
       const stats = getFeatureRenderStats(feature);
       if (typeof stats.share === "number" && !Number.isNaN(stats.share)) {
         values.push(stats.share);
+      }
+    }
+    values.sort((a, b) => a - b);
+    const q95 = quantile(values, 0.95);
+    state.activeMax = q95 > 0 ? q95 : 1;
+  } else if (plotModeSelect.value === "winner_margin") {
+    state.activeMin = 0;
+    state.activeCrossesZero = false;
+    const geo = state.geojsonByGranularity[granularitySelect.value];
+    const values = [];
+    for (const feature of geo?.features || []) {
+      const stats = getFeatureRenderStats(feature);
+      if (typeof stats.margin === "number" && !Number.isNaN(stats.margin)) {
+        values.push(stats.margin);
       }
     }
     values.sort((a, b) => a - b);

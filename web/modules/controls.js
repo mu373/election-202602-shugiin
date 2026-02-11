@@ -28,6 +28,7 @@ import {
   isSelectedVsTopMode,
   isRulingVsOppositionMode,
   isConcentrationMode,
+  isWinnerMarginMode,
   isNationalDivergenceMode,
   isAnyRankMode,
   getSelectedMetricMode,
@@ -87,10 +88,11 @@ export function updateControlVisibility() {
   const isSelectedVsTop = isSelectedVsTopMode();
   const isRulingVsOpposition = isRulingVsOppositionMode();
   const isConcentration = isConcentrationMode();
+  const isWinnerMargin = isWinnerMarginMode();
   const isNationalDivergence = isNationalDivergenceMode();
   const isMuni = granularitySelect.value === "muni";
-  const showModeHelp = isAnyRankMode() || isSelectedVsTop || isRulingVsOpposition || isConcentration || isNationalDivergence;
-  groupParty.classList.toggle("hidden", isRank || isConcentration || isRulingVsOpposition || isNationalDivergence);
+  const showModeHelp = isAnyRankMode() || isSelectedVsTop || isRulingVsOpposition || isConcentration || isWinnerMargin || isNationalDivergence;
+  groupParty.classList.toggle("hidden", isRank || isConcentration || isWinnerMargin || isRulingVsOpposition || isNationalDivergence);
   groupCompareTarget.classList.toggle("hidden", !isSelectedVsTop);
   groupSelectedMetric.classList.toggle("hidden", !isSelectedVsTop);
   selectedMetricHelpEl?.classList.toggle("hidden", !isSelectedVsTop);
@@ -123,6 +125,8 @@ export function updateControlVisibility() {
     modeHelpEl.textContent = "与党（自民・維新）と野党（それ以外）の比較を表示します。";
   } else if (plotModeSelect.value === "concentration") {
     modeHelpEl.innerHTML = `<a href="https://ja.wikipedia.org/wiki/%E3%83%8F%E3%83%BC%E3%83%95%E3%82%A3%E3%83%B3%E3%83%80%E3%83%BC%E3%83%AB%E3%83%BB%E3%83%8F%E3%83%BC%E3%82%B7%E3%83%A5%E3%83%9E%E3%83%B3%E3%83%BB%E3%82%A4%E3%83%B3%E3%83%87%E3%83%83%E3%82%AF%E3%82%B9" target="_blank" rel="noopener noreferrer">ハーフィンダール・ハーシュマン指数 (HHI)</a> を表示します。値が高いほど特定政党への集中が強いことを示します。`;
+  } else if (plotModeSelect.value === "winner_margin") {
+    modeHelpEl.textContent = "上位2党の得票率差（1位−2位）を表示します。値が小さいほど接戦、値が大きいほど1位が優勢です。";
   } else if (plotModeSelect.value === "js_divergence") {
     modeHelpEl.innerHTML = "政党投票構成の全国平均からの乖離度を <a href=\"https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence\" target=\"_blank\" rel=\"noopener noreferrer\">Jensen-Shannon距離</a> で表示します。値が0に近いほど全国平均に近く、値が高いほど平均からの乖離が大きいことを示します。";
   }
@@ -181,6 +185,7 @@ export function readStateFromUrl() {
       qMode === "party_rank" ||
       qMode === "selected_diff" ||
       qMode === "ruling_vs_opposition" ||
+      qMode === "winner_margin" ||
       qMode === "concentration" ||
       qMode === "js_divergence"
     )

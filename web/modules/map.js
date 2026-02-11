@@ -16,6 +16,7 @@ import {
   isSelectedVsTopMode,
   isRulingVsOppositionMode,
   isConcentrationMode,
+  isWinnerMarginMode,
   isNationalDivergenceMode,
   isSignedDiffMode,
   isRulingRatioMode,
@@ -24,7 +25,7 @@ import {
   getFeatureRenderStats,
   buildPartyRankPopupRows,
 } from "./modes.js";
-import { pct, ppSignedLabel, ratioLabel } from "./format.js";
+import { pct, ppLabel, ppSignedLabel, ratioLabel } from "./format.js";
 
 // Leaflet globals — L is loaded as a regular <script> before this module.
 export let leafletMap = null;
@@ -68,7 +69,7 @@ export function featureStyle(feature) {
     fillColor = stats.partyCode ? partyColor(stats.partyCode) : NODATA_COLOR;
   } else if (isPartyRankMode()) {
     fillColor = getPartyRankColor(stats.rank);
-  } else if (isConcentrationMode() || isNationalDivergenceMode()) {
+  } else if (isConcentrationMode() || isWinnerMarginMode() || isNationalDivergenceMode()) {
     fillColor = getColorFromPalette(stats.share, state.activeMax, SHARE_COLORS, CONCENTRATION_CONTRAST_GAMMA);
   } else if (isSignedDiffMode() || isRulingRatioMode() || isSelectedRatioMode()) {
     if (stats.share == null || Number.isNaN(stats.share)) {
@@ -190,6 +191,17 @@ function onEachFeature(feature, layer) {
           実効政党数 (1/HHI): ${
             stats.effectivePartyCount == null ? "N/A" : stats.effectivePartyCount.toFixed(2)
           }<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
+          ${allRanksHtml}
+        `;
+      } else if (isWinnerMarginMode()) {
+        const allRanksHtml = buildPartyRankPopupRows(feature, null, null);
+        popup = `
+          <strong>${stats.label}</strong><br>
+          上位2党の得票率差（1位−2位）: ${stats.margin == null ? "N/A" : ppLabel(stats.margin)}<br>
+          1位: ${stats.winnerPartyName || "N/A"}（${pct(stats.winnerShare)}）<br>
+          2位: ${stats.runnerUpPartyName || "N/A"}（${pct(stats.runnerUpShare)}）<br>
           地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}

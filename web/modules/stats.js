@@ -6,6 +6,7 @@ import {
   isSelectedVsTopMode,
   isRulingVsOppositionMode,
   isConcentrationMode,
+  isWinnerMarginMode,
   isNationalDivergenceMode,
   getCompareTargetLabel,
   getSelectedMetricMode,
@@ -15,7 +16,7 @@ import {
   getFeatureRenderStats,
 } from "./modes.js";
 import { getRankedPartiesForFeature } from "./data.js";
-import { pct, ppSignedLabel, ratioLabel } from "./format.js";
+import { pct, ppLabel, ppSignedLabel, ratioLabel } from "./format.js";
 
 function getGranularityLabel() {
   if (granularitySelect.value === "muni") return "市区町村";
@@ -164,6 +165,30 @@ export function updateStats() {
       <div>平均実効政党数 (1/HHI): ${avgEffective == null ? "N/A" : avgEffective.toFixed(2)}</div>
       <div>最も集中: ${maxHHI.label} (${maxHHI.concentration.toFixed(3)})</div>
       <div>最も分散: ${minHHI.label} (${minHHI.concentration.toFixed(3)})</div>
+    `;
+    return;
+  }
+
+  if (isWinnerMarginMode()) {
+    const geo = state.geojsonByGranularity[granularitySelect.value];
+    const rows = [];
+    for (const feature of geo?.features || []) {
+      const s = getFeatureRenderStats(feature);
+      if (typeof s.margin === "number" && !Number.isNaN(s.margin)) rows.push(s);
+    }
+    if (!rows.length) {
+      statsEl.innerHTML = `<div class="name">上位2党の得票率差（接戦度）</div><div>データなし</div>`;
+      return;
+    }
+    const avg = rows.reduce((acc, r) => acc + r.margin, 0) / rows.length;
+    const maxRow = [...rows].sort((a, b) => b.margin - a.margin)[0];
+    const minRow = [...rows].sort((a, b) => a.margin - b.margin)[0];
+    statsEl.innerHTML = `
+      <div class="name">上位2党の得票率差（接戦度）</div>
+      <div>表示単位: ${getGranularityLabel()}</div>
+      <div>平均: ${ppLabel(avg)}</div>
+      <div>最も接戦: ${minRow.label} (${ppLabel(minRow.margin)})</div>
+      <div>最も大差: ${maxRow.label} (${ppLabel(maxRow.margin)})</div>
     `;
     return;
   }
