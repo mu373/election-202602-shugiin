@@ -24,7 +24,7 @@ body {
 }
 .top-actions {
   position: absolute;
-  left: 14px;
+  right: 14px;
   bottom: 14px;
   display: flex;
   flex-direction: column;
@@ -447,11 +447,12 @@ body {
     min-height: 44px;
   }
 
-  /* --- Action buttons: top-left to avoid overlap --- */
+  /* --- Action buttons: top-left on mobile --- */
   .top-actions {
-    left: 14px;
-    bottom: auto;
+    left: calc(14px + env(safe-area-inset-left, 0px));
+    right: auto;
     top: calc(24px + env(safe-area-inset-top, 0px));
+    bottom: auto;
     gap: 8px;
   }
   .action-button {

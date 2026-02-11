@@ -1,20 +1,26 @@
 import {
-  SHARE_COLORS,
-  NODATA_COLOR,
   COLOR_PROGRESS_GAMMA,
-} from "./constants.js";
+  NODATA_COLOR,
+  SHARE_COLORS,
+} from './constants';
 
-export function clamp01(v) {
+interface RGB {
+  r: number;
+  g: number;
+  b: number;
+}
+
+export function clamp01(v: number): number {
   return Math.max(0, Math.min(1, v));
 }
 
-export function skewRight(t) {
+export function skewRight(t: number): number {
   return Math.pow(clamp01(t), COLOR_PROGRESS_GAMMA);
 }
 
-export function hexToRgb(hex) {
-  const h = hex.replace("#", "");
-  const norm = h.length === 3 ? h.split("").map((c) => `${c}${c}`).join("") : h;
+export function hexToRgb(hex: string): RGB {
+  const h = hex.replace('#', '');
+  const norm = h.length === 3 ? h.split('').map((c) => `${c}${c}`).join('') : h;
   return {
     r: Number.parseInt(norm.slice(0, 2), 16),
     g: Number.parseInt(norm.slice(2, 4), 16),
@@ -22,12 +28,12 @@ export function hexToRgb(hex) {
   };
 }
 
-export function rgbToHex({ r, g, b }) {
-  const toHex = (x) => x.toString(16).padStart(2, "0");
+export function rgbToHex({ r, g, b }: RGB): string {
+  const toHex = (x: number) => x.toString(16).padStart(2, '0');
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-export function interpolateColor(t) {
+export function interpolateColor(t: number): string {
   const tt = clamp01(t);
   const scaled = tt * (SHARE_COLORS.length - 1);
   const i = Math.floor(scaled);
@@ -41,7 +47,7 @@ export function interpolateColor(t) {
   });
 }
 
-export function interpolateFromPalette(palette, t) {
+export function interpolateFromPalette(palette: readonly string[] | string[], t: number): string {
   const tt = clamp01(t);
   const scaled = tt * (palette.length - 1);
   const i = Math.floor(scaled);
@@ -55,17 +61,22 @@ export function interpolateFromPalette(palette, t) {
   });
 }
 
-export function getColor(share, maxValue) {
+export function getColor(share: number | null | undefined, maxValue: number): string {
   return getColorFromPalette(share, maxValue, SHARE_COLORS);
 }
 
-export function getColorFromPalette(value, maxValue, palette, gamma = COLOR_PROGRESS_GAMMA) {
+export function getColorFromPalette(
+  value: number | null | undefined,
+  maxValue: number,
+  palette: readonly string[] | string[],
+  gamma = COLOR_PROGRESS_GAMMA,
+): string {
   if (value == null || Number.isNaN(value)) return NODATA_COLOR;
   const t = maxValue > 0 ? clamp01(value / maxValue) : 0;
   return interpolateFromPalette(palette, Math.pow(t, gamma));
 }
 
-export function quantile(sortedValues, q) {
+export function quantile(sortedValues: number[], q: number): number {
   if (!sortedValues.length) return 0;
   const pos = (sortedValues.length - 1) * q;
   const base = Math.floor(pos);
