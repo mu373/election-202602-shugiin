@@ -12,7 +12,15 @@
       "destination": "/index.html"
     },
     {
+      "source": "/hirei/",
+      "destination": "/index.html"
+    },
+    {
       "source": "/senkyoku",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/senkyoku/",
       "destination": "/index.html"
     }
   ]
