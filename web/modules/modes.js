@@ -461,7 +461,7 @@ export function buildPartyRankPopupRows(feature, selectedCode, compareTargetCode
   if (!ranked.length) return "順位データ: N/A";
   return ranked
     .map((p, idx) => {
-      const isTopTwo = idx < 2;
+      const isTopTwo = isWinnerMarginMode() && idx < 2;
       const isSelected = p.code === selectedCode;
       const isCompareTarget = compareTargetCode && p.code === compareTargetCode;
       const label = `第${idx + 1}位 ${state.partyNameByCode[p.code] || p.code}: ${pct(p.share)}`;
