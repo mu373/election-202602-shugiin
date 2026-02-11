@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { granularitySelect, rankSelect, legendTitleEl, legendEl } from "./dom.js";
+import { granularitySelect, rankSelect, legendTitleEl, legendEl, partySelect, compareTargetSelect } from "./dom.js";
 import {
   NODATA_COLOR,
   SHARE_COLORS,
@@ -127,8 +127,19 @@ export function updateLegend() {
         ? ratioLabel(ratioRight)
         : (isSignedDiffMode() ? ppLabel(state.activeMax) : pctLabel(state.activeMax))
     );
+  let semanticLeft = "";
+  let semanticRight = "";
+  if (isRulingVsOppositionMode()) {
+    semanticLeft = "野党が優勢";
+    semanticRight = "与党が優勢";
+  } else if (isSelectedVsTopMode()) {
+    const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || "比較対象";
+    const baseName = state.partyNameByCode[partySelect.value] || "基準政党";
+    semanticLeft = targetName + "が優勢";
+    semanticRight = baseName + "が優勢";
+  }
   const semanticRow = (isSignedDiffMode() || isRulingRatioMode() || isSelectedRatioMode())
-    ? `<div class="legend-axis"><span>${isRulingVsOppositionMode() ? "野党が優勢" : "基準政党が劣勢"}</span><span>${(isRulingRatioMode() || isSelectedRatioMode()) ? "拮抗 (1.00)" : "拮抗"}</span><span>${isRulingVsOppositionMode() ? "与党が優勢" : "基準政党が優勢"}</span></div>`
+    ? `<div class="legend-axis"><span>${semanticLeft}</span><span>${(isRulingRatioMode() || isSelectedRatioMode()) ? "拮抗 (1.00)" : "拮抗"}</span><span>${semanticRight}</span></div>`
     : "";
   legendEl.innerHTML = `
     <div class="legend-gradient" style="background: linear-gradient(to right, ${gradientStops});"></div>
@@ -154,9 +165,11 @@ export function updateLegendTitle() {
     return;
   }
   if (isSelectedVsTopMode()) {
+    const baseName = state.partyNameByCode[partySelect.value] || "基準政党";
+    const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || "比較対象";
     legendTitleEl.textContent = getSelectedMetricMode() === "ratio"
-      ? "凡例（比: 基準/比較）"
-      : "凡例（差分: 基準政党 - 比較対象）";
+      ? `凡例（比: ${baseName} / ${targetName}）`
+      : `凡例（差: ${baseName} − ${targetName}）`;
     return;
   }
   if (isRulingVsOppositionMode()) {

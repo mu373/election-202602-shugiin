@@ -15,8 +15,12 @@ body {
 }
 .app {
   position: relative;
-  height: 100vh;
+  height: 100dvh;
   width: 100vw;
+  overflow: hidden;
+}
+@supports not (height: 100dvh) {
+  .app { height: 100vh; }
 }
 .top-actions {
   position: absolute;
@@ -135,12 +139,6 @@ body {
   color: #1f5fbf;
 }
 .sidebar {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 1000;
-  width: var(--panel-width);
-  max-height: calc(100vh - 28px);
   border: 1px solid var(--border);
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.96);
@@ -148,6 +146,8 @@ body {
   box-shadow: 0 10px 24px rgba(17, 24, 39, 0.14);
   padding: 16px;
   overflow: auto;
+  flex-shrink: 1;
+  min-height: 0;
 }
 .sidebar h1 {
   margin: 0 0 12px;
@@ -250,43 +250,221 @@ body {
     0 0 4px rgba(255, 255, 255, 0.95);
   pointer-events: none;
 }
+/* Mode label + desc + panel title — hidden on desktop */
+.legend-mode-label,
+.legend-mode-desc,
+.legend-panel-title {
+  display: none;
+}
+/* Sidebar toggle button — hidden on desktop */
+.sidebar-toggle {
+  display: none;
+}
+/* Close button — hidden on desktop */
+.sidebar-close {
+  display: none;
+}
+/* Left column: stacks sidebar, legend, stats on desktop */
+.left-column {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 1000;
+  width: var(--panel-width);
+  max-height: calc(100vh - 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow: hidden;
+  pointer-events: none;
+}
+.left-column > * {
+  pointer-events: auto;
+}
+/* Shared panel style */
+.legend-panel,
+.stats-panel {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(4px);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.14);
+  padding: 14px 16px;
+  overflow: auto;
+  flex-shrink: 1;
+  min-height: 0;
+}
+#legendTitle {
+  margin-top: 0;
+}
+.stats-panel .block-title {
+  margin-top: 0;
+}
 #map {
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
+}
+@supports not (height: 100dvh) {
+  #map { height: 100vh; }
 }
 @media (max-width: 900px) {
-  .sidebar {
-    top: auto;
+  /* --- Left column: disabled on mobile --- */
+  .left-column {
+    position: static;
+    width: auto;
+    max-height: none;
+    display: contents;
+  }
+
+  /* --- Legend panel: floating card on mobile --- */
+  .legend-panel {
+    position: absolute;
     left: 10px;
     right: 10px;
-    bottom: 10px;
+    bottom: calc(24px + env(safe-area-inset-bottom, 0px));
     width: auto;
-    max-height: 45vh;
-    border-radius: 10px;
+    max-height: 35vh;
+    z-index: 1000;
   }
+  .legend-panel .legend-panel-title {
+    display: block;
+    font-size: 11px;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .legend-panel .legend-mode-label {
+    display: block;
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .legend-panel .legend-mode-desc {
+    display: block;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  /* --- Stats panel: hidden on mobile (in settings instead) --- */
+  .stats-panel {
+    display: none;
+  }
+
+  /* --- Sidebar: controls overlay, hidden by default --- */
+  .sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: auto;
+    max-height: none;
+    border-radius: 0;
+    padding: 16px;
+    padding-top: calc(16px + env(safe-area-inset-top, 0px));
+    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    overflow: auto;
+    transform: translateY(100%);
+    transition: transform 300ms ease;
+    z-index: 1100;
+  }
+  .sidebar.open {
+    transform: translateY(0);
+  }
+
+  /* --- Close button at top of sidebar overlay --- */
+  .sidebar-close {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 12px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    background: #f1f3f5;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    min-height: 44px;
+  }
+  .sidebar-close:active {
+    background: #e2e5e9;
+  }
+
+  /* --- Toggle button: inside legend panel, top-right --- */
+  .sidebar-toggle {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    color: var(--muted);
+    background: #f1f3f5;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .sidebar-toggle svg {
+    width: 18px;
+    height: 18px;
+  }
+  .sidebar-toggle:active {
+    background: #e2e5e9;
+  }
+
+  /* --- Bigger touch targets for selects --- */
+  .sidebar select {
+    padding: 10px;
+    font-size: 16px;
+  }
+  .checkbox-row {
+    min-height: 44px;
+  }
+
+  /* --- Action buttons: top-left to avoid overlap --- */
   .top-actions {
-    left: 10px;
-    bottom: 10px;
-    gap: 6px;
+    left: 14px;
+    bottom: auto;
+    top: calc(24px + env(safe-area-inset-top, 0px));
+    gap: 8px;
   }
   .action-button {
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
     font-size: 18px;
   }
   .action-button svg {
-    width: 19px;
-    height: 19px;
+    width: 20px;
+    height: 20px;
   }
+
+  /* --- Info modal --- */
   .info-modal {
     padding: 10px;
   }
   .info-modal-panel {
     width: min(680px, calc(100vw - 20px));
-    max-height: calc(100vh - 20px);
+    max-height: calc(100dvh - 20px);
   }
+
+  /* --- Leaflet zoom: respect safe area --- */
+  .leaflet-top.leaflet-right {
+    top: calc(14px + env(safe-area-inset-top, 0px));
+    right: calc(4px + env(safe-area-inset-right, 0px));
+  }
+
+  /* --- Map --- */
   #map {
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
+  }
+  @supports not (height: 100dvh) {
+    #map { height: 100vh; }
+    .info-modal-panel { max-height: calc(100vh - 20px); }
   }
 }

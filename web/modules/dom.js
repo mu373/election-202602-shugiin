@@ -25,6 +25,12 @@ export let scaleHelpEl = null;
 export let infoButton = null;
 export let infoModal = null;
 export let infoCloseButton = null;
+export let sidebarToggle = null;
+export let sidebar = null;
+export let legendPanel = null;
+export let sidebarClose = null;
+export let legendModeLabel = null;
+export let legendModeDesc = null;
 
 export function initDomRefs() {
   partySelect = document.getElementById("partySelect");
@@ -54,4 +60,10 @@ export function initDomRefs() {
   infoButton = document.getElementById("infoButton");
   infoModal = document.getElementById("infoModal");
   infoCloseButton = document.getElementById("infoCloseButton");
+  sidebarToggle = document.getElementById("sidebarToggle");
+  sidebar = document.querySelector(".sidebar");
+  legendPanel = document.getElementById("legendPanel");
+  sidebarClose = document.getElementById("sidebarClose");
+  legendModeLabel = document.getElementById("legendModeLabel");
+  legendModeDesc = document.getElementById("legendModeDesc");
 }

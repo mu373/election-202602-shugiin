@@ -1,5 +1,5 @@
 import { state } from "./modules/state.js";
-import { initDomRefs, plotModeSelect, partySelect, scaleModeSelect, granularitySelect, compareTargetSelect, selectedMetricSelect, rulingMetricSelect, rankSelect, labelToggle, prefBorderToggle, statsEl } from "./modules/dom.js";
+import { initDomRefs, plotModeSelect, partySelect, scaleModeSelect, granularitySelect, compareTargetSelect, selectedMetricSelect, rulingMetricSelect, rankSelect, labelToggle, prefBorderToggle, statsEl, sidebarToggle, sidebar, legendPanel, sidebarClose, legendModeLabel, legendModeDesc } from "./modules/dom.js";
 import { SELECTED_DIFF_DEFAULT_BASE, SELECTED_DIFF_DEFAULT_TARGET } from "./modules/constants.js";
 import { quantile } from "./modules/colors.js";
 import { buildPartyColorMap, buildAggregates } from "./modules/data.js";
@@ -21,6 +21,47 @@ import {
   getRulingOppositionValuesForCurrentGranularity,
   getFeatureRenderStats,
 } from "./modules/modes.js";
+
+const MODE_DESCRIPTIONS = {
+  share: "各政党の得票率を色の濃淡で表示",
+  party_rank: "選択した政党の順位を地域ごとに色分け",
+  rank: "各地域で第N位の政党を色分け",
+  opposition_rank: "自民党を除いた第N位の政党を色分け",
+  selected_diff: "二つの政党の得票率の差・比を比較",
+  ruling_vs_opposition: "与党（自民+維新）と野党（その他）の得票率を比較",
+  concentration: "値が高いほど一党集中、低いほど多党分散",
+};
+
+function updateModeLabel() {
+  const mode = plotModeSelect.value;
+  const modeText = plotModeSelect.options[plotModeSelect.selectedIndex]?.textContent || "";
+  const partyName = state.partyNameByCode[partySelect.value] || "";
+  let label = modeText;
+  let desc = MODE_DESCRIPTIONS[mode] || "";
+  if (mode === "share") {
+    label += ": " + partyName;
+  } else if (mode === "party_rank") {
+    label = partyName + "の地域別順位";
+    desc = "";
+  } else if (mode === "selected_diff") {
+    const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || "";
+    const metric = selectedMetricSelect.value;
+    label = "比較: " + partyName + " vs " + targetName;
+    desc = metric === "ratio"
+      ? "二つの政党の得票率の比を表示"
+      : "二つの政党の得票率の差を表示";
+  } else if (mode === "rank") {
+    const rankN = rankSelect.value || "1";
+    label = "得票率第" + rankN + "位の政党";
+    desc = "";
+  } else if (mode === "opposition_rank") {
+    const rankN = rankSelect.value || "1";
+    label = "野党第" + rankN + "党";
+    desc = "自民党を除いた第" + rankN + "位の政党";
+  }
+  legendModeLabel.textContent = label;
+  legendModeDesc.textContent = desc;
+}
 
 function recolor() {
   if (!state.geoLayer) return;
@@ -76,6 +117,7 @@ function recolor() {
     const q95 = quantile(values, 0.95);
     state.activeMax = q95 > 0 ? q95 : 1;
   }
+  updateModeLabel();
   updateLegend();
   state.geoLayer.setStyle(featureStyle);
   updateLabels();
@@ -161,6 +203,15 @@ async function init() {
   rankSelect.addEventListener("change", handleControlChange);
   labelToggle.addEventListener("change", handleControlChange);
   prefBorderToggle.addEventListener("change", handleControlChange);
+  function toggleSidebar() {
+    const open = sidebar.classList.toggle("open");
+    sidebarToggle.setAttribute("aria-expanded", String(open));
+  }
+  sidebarToggle.addEventListener("click", toggleSidebar);
+  sidebarClose.addEventListener("click", () => {
+    sidebar.classList.remove("open");
+    sidebarToggle.setAttribute("aria-expanded", "false");
+  });
   leafletMap.on("zoomend", updateLabels);
   leafletMap.on("moveend", updateLabels);
   writeStateToUrl();

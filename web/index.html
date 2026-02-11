@@ -42,8 +42,10 @@
           i
         </button>
       </div>
+      <div class="left-column">
       <aside class="sidebar">
-        <h1 id="titleMain">第51回衆議院議員選挙</br>比例区得票マップ</h1>
+        <button class="sidebar-close" id="sidebarClose" type="button" aria-label="設定を閉じる">✕ 閉じる</button>
+        <h1 id="titleMain">第51回衆議院議員選挙 比例区得票マップ</h1>
         <div class="control-group" id="groupPlotMode">
           <label for="plotModeSelect">表示モード</label>
           <select id="plotModeSelect">
@@ -104,9 +106,6 @@
           <select id="rankSelect"></select>
         </div>
 
-        <div class="block-title" id="legendTitle">凡例（得票率）</div>
-        <div id="legend"></div>
-
         <div class="block-title display-settings-title">表示設定</div>
         <div class="toggle-group">
           <div class="control-group" id="groupLabels">
@@ -123,9 +122,22 @@
           </div>
         </div>
 
+      </aside>
+      <div class="legend-panel" id="legendPanel">
+        <div class="legend-panel-title">第51回衆院選 比例区得票マップ</div>
+        <div class="legend-mode-label" id="legendModeLabel"></div>
+        <div class="legend-mode-desc" id="legendModeDesc"></div>
+        <div class="block-title" id="legendTitle">凡例（得票率）</div>
+        <div id="legend"></div>
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="false" aria-label="設定パネルを開閉">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </button>
+      </div>
+      <div class="stats-panel" id="statsPanel">
         <div class="block-title">統計</div>
         <div id="stats" class="stats"></div>
-      </aside>
+      </div>
+      </div>
       <div id="infoModal" class="info-modal" hidden>
         <div
           class="info-modal-panel"
