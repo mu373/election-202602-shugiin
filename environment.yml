@@ -1,0 +1,19 @@
+name: election-pymc
+channels:
+  - conda-forge
+dependencies:
+  - python=3.11
+  - pymc
+  - pytensor
+  - arviz
+  - numpy
+  - pandas
+  - scipy
+  - scikit-learn
+  - geopandas
+  - pyproj
+  - shapely
+  - libpysal
+  - graphviz
+  - ipykernel
+  - blas=*=openblas
