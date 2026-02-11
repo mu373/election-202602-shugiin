@@ -33,6 +33,28 @@ const MODE_DESCRIPTIONS = {
   concentration: "値が高いほど一党集中、低いほど多党分散を示します",
   js_divergence: "政党投票構成の全国平均からの乖離度を示します。値が0に近いほど全国平均に近く、値が高いほど違いが大きくなります。",
 };
+const DATA_FILE_NAMES = [
+  "municipalities.geojson",
+  "prefectures.geojson",
+  "blocks.geojson",
+  "election_data.json",
+  "parties.json",
+];
+const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/mu373/election-202602-shugiin/main/web/data";
+const LOCAL_DATA_BASE = "./data";
+
+function getConfiguredDataSourceMode() {
+  const mode = import.meta.env.VITE_DATA_SOURCE_MODE;
+  if (mode === "local" || mode === "remote") return mode;
+  return null;
+}
+
+function getDataUrlOrder(fileName) {
+  const localUrl = `${LOCAL_DATA_BASE}/${fileName}`;
+  const remoteUrl = `${GITHUB_RAW_BASE}/${fileName}`;
+  const mode = getConfiguredDataSourceMode() || "remote";
+  return mode === "local" ? [localUrl] : [remoteUrl, localUrl];
+}
 
 function initShareXButton() {
   const shareXButton = document.getElementById("shareXButton");
@@ -212,13 +234,30 @@ async function init() {
   initShareXButton();
   initMap();
 
-  const [muniGeojson, prefGeojson, blockGeojson, election, partyList] = await Promise.all([
-    fetch("./data/municipalities.geojson").then((r) => r.json()),
-    fetch("./data/prefectures.geojson").then((r) => r.json()),
-    fetch("./data/blocks.geojson").then((r) => r.json()),
-    fetch("./data/election_data.json").then((r) => r.json()),
-    fetch("./data/parties.json").then((r) => r.json()),
-  ]);
+  async function loadDataWithFallback(fileName) {
+    const urls = getDataUrlOrder(fileName);
+    let lastError = null;
+    for (const url of urls) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`${res.status} ${res.statusText}`);
+        }
+        return await res.json();
+      } catch (err) {
+        lastError = err;
+      }
+    }
+    throw new Error(`Failed to load ${fileName}: ${lastError?.message || "unknown error"}`);
+  }
+
+  const [
+    muniGeojson,
+    prefGeojson,
+    blockGeojson,
+    election,
+    partyList,
+  ] = await Promise.all(DATA_FILE_NAMES.map((fileName) => loadDataWithFallback(fileName)));
 
   state.geojsonByGranularity = {
     muni: muniGeojson,
