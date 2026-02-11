@@ -26,6 +26,7 @@ import {
   buildPartyRankPopupRows,
 } from "./modes.js";
 import { pct, ppLabel, ppSignedLabel, ratioLabel } from "./format.js";
+import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
 
 // Leaflet globals — L is loaded as a regular <script> before this module.
 export let leafletMap = null;
@@ -169,12 +170,12 @@ function onEachFeature(feature, layer) {
           ${allRanksHtml}
         `;
       } else if (isRulingVsOppositionMode()) {
+        const ctx = buildLabelContext();
+        const config = MODE_LABELS[ctx.mode];
         const diffText = stats.metricMode === "ratio"
           ? ratioLabel(stats.ratio)
           : ppSignedLabel(stats.gap);
-        const diffLabel = stats.metricMode === "ratio"
-          ? "与党（自民・維新）/野党（それ以外）"
-          : "与党と野党の差";
+        const diffLabel = resolveLabel(config.popupMetricLabel, ctx);
         const allRanksHtml = buildPartyRankPopupRows(feature, null, null);
         popup = `
           <strong>${stats.label}</strong><br>
@@ -184,10 +185,12 @@ function onEachFeature(feature, layer) {
           ${allRanksHtml}
         `;
       } else if (isConcentrationMode()) {
+        const ctx = buildLabelContext();
+        const config = MODE_LABELS[ctx.mode];
         const allRanksHtml = buildPartyRankPopupRows(feature, null, null);
         popup = `
           <strong>${stats.label}</strong><br>
-          ハーフィンダール・ハーシュマン指数 (HHI): ${stats.concentration == null ? "N/A" : stats.concentration.toFixed(3)}<br>
+          ${resolveLabel(config.popupMetricLabel, ctx)}: ${stats.concentration == null ? "N/A" : stats.concentration.toFixed(3)}<br>
           実効政党数 (1/HHI): ${
             stats.effectivePartyCount == null ? "N/A" : stats.effectivePartyCount.toFixed(2)
           }<br>
@@ -196,10 +199,12 @@ function onEachFeature(feature, layer) {
           ${allRanksHtml}
         `;
       } else if (isWinnerMarginMode()) {
+        const ctx = buildLabelContext();
+        const config = MODE_LABELS[ctx.mode];
         const allRanksHtml = buildPartyRankPopupRows(feature, null, null);
         popup = `
           <strong>${stats.label}</strong><br>
-          上位2党の得票率差（1位−2位）: ${stats.margin == null ? "N/A" : ppLabel(stats.margin)}<br>
+          ${resolveLabel(config.popupMetricLabel, ctx)}: ${stats.margin == null ? "N/A" : ppLabel(stats.margin)}<br>
           1位: ${stats.winnerPartyName || "N/A"}（${pct(stats.winnerShare)}）<br>
           2位: ${stats.runnerUpPartyName || "N/A"}（${pct(stats.runnerUpShare)}）<br>
           地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
@@ -207,10 +212,12 @@ function onEachFeature(feature, layer) {
           ${allRanksHtml}
         `;
       } else if (isNationalDivergenceMode()) {
+        const ctx = buildLabelContext();
+        const config = MODE_LABELS[ctx.mode];
         const allRanksHtml = buildPartyRankPopupRows(feature, null, null);
         popup = `
           <strong>${stats.label}</strong><br>
-          全国平均からの乖離度（Jensen-Shannon距離）: ${stats.nationalDivergence == null ? "N/A" : stats.nationalDivergence.toFixed(3)}<br>
+          ${resolveLabel(config.popupMetricLabel, ctx)}: ${stats.nationalDivergence == null ? "N/A" : stats.nationalDivergence.toFixed(3)}<br>
           地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}

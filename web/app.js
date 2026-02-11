@@ -21,18 +21,7 @@ import {
   getRulingOppositionValuesForCurrentGranularity,
   getFeatureRenderStats,
 } from "./modules/modes.js";
-
-const MODE_DESCRIPTIONS = {
-  share: "各政党の得票率を色の濃淡で示します",
-  party_rank: "選択した政党の順位を地域ごとに示します",
-  rank: "各地域で第N位の政党を示します",
-  opposition_rank: "自民党を除いた第N位の政党を示します",
-  selected_diff: "二つの政党の得票率の差・比を示します",
-  ruling_vs_opposition: "与党（自民+維新）と野党（その他）の得票率比較を示します",
-  winner_margin: "値が小さいほど接戦、値が大きいほど1位が優勢です。",
-  concentration: "値が高いほど一党集中、低いほど多党分散を示します",
-  js_divergence: "政党投票構成の全国平均からの乖離度を示します。値が0に近いほど全国平均に近く、値が高いほど違いが大きくなります。",
-};
+import { MODE_LABELS, buildLabelContext, resolveLabel } from "./modules/mode-labels.js";
 const DATA_FILE_NAMES = [
   "municipalities.geojson",
   "prefectures.geojson",
@@ -70,38 +59,15 @@ function initShareXButton() {
 }
 
 function updateModeLabel() {
-  const mode = plotModeSelect.value;
-  const modeText = plotModeSelect.options[plotModeSelect.selectedIndex]?.textContent || "";
-  const partyName = state.partyNameByCode[partySelect.value] || "";
-  let label = modeText;
-  let desc = MODE_DESCRIPTIONS[mode] || "";
-  if (mode === "share") {
-    label += ": " + partyName;
-  } else if (mode === "party_rank") {
-    label = partyName + "の地域別順位";
-    desc = "";
-  } else if (mode === "selected_diff") {
-    const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || "";
-    const metric = selectedMetricSelect.value;
-    label = "比較: " + partyName + " vs " + targetName;
-    desc = metric === "ratio"
-      ? "二つの政党の得票率の比を表示"
-      : "二つの政党の得票率の差を表示";
-  } else if (mode === "rank") {
-    const rankN = rankSelect.value || "1";
-    label = "得票率第" + rankN + "位の政党";
-    desc = "";
-  } else if (mode === "opposition_rank") {
-    const rankN = rankSelect.value || "1";
-    label = "野党第" + rankN + "党";
-    desc = "自民党を除いた第" + rankN + "位の政党";
-  } else if (mode === "winner_margin") {
-    label = "上位2党の得票率差（接戦度）";
-  } else if (mode === "js_divergence") {
-    label = "政党投票構成の全国平均からの乖離度";
+  const ctx = buildLabelContext();
+  const config = MODE_LABELS[ctx.mode];
+  if (!config) {
+    legendModeLabel.textContent = ctx.modeText;
+    legendModeDesc.textContent = "";
+    return;
   }
-  legendModeLabel.textContent = label;
-  legendModeDesc.textContent = desc;
+  legendModeLabel.textContent = resolveLabel(config.legendHeader, ctx);
+  legendModeDesc.textContent = resolveLabel(config.description, ctx);
 }
 
 function recolor() {

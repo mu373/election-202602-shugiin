@@ -305,6 +305,10 @@ body {
   flex-shrink: 1;
   min-height: 0;
 }
+/* Sidebar stats mirror — hidden on desktop */
+.sidebar-stats {
+  display: none;
+}
 #legendTitle {
   margin-top: 0;
 }
@@ -356,9 +360,15 @@ body {
     margin-bottom: 6px;
   }
 
-  /* --- Stats panel: hidden on mobile (in settings instead) --- */
+  /* --- Stats panel: standalone hidden, sidebar mirror shown --- */
   .stats-panel {
     display: none;
+  }
+  .sidebar-stats {
+    display: block;
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
   }
 
   /* --- Sidebar: controls overlay, hidden by default --- */

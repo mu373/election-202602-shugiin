@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { granularitySelect, rankSelect, legendTitleEl, legendEl, partySelect, compareTargetSelect } from "./dom.js";
+import { granularitySelect, rankSelect, legendTitleEl, legendEl } from "./dom.js";
 import {
   NODATA_COLOR,
   SHARE_COLORS,
@@ -18,14 +18,13 @@ import {
   isSignedDiffMode,
   isRulingRatioMode,
   isSelectedRatioMode,
-  getSelectedMetricMode,
-  getRulingMetricMode,
   getExcludedPartyCodeForMode,
   getPartyRankColor,
   getFeatureRenderStats,
 } from "./modes.js";
 import { partyColor, getRankedPartiesForFeature } from "./data.js";
 import { pctLabel, ppLabel, ratioLabel } from "./format.js";
+import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
 
 export function updateLegend() {
   updateLegendTitle();
@@ -141,17 +140,10 @@ export function updateLegend() {
         ? ratioLabel(ratioRight)
         : (isSignedDiffMode() ? ppLabel(state.activeMax) : pctLabel(state.activeMax))
     )));
-  let semanticLeft = "";
-  let semanticRight = "";
-  if (isRulingVsOppositionMode()) {
-    semanticLeft = "野党が優勢";
-    semanticRight = "与党が優勢";
-  } else if (isSelectedVsTopMode()) {
-    const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || "比較対象";
-    const baseName = state.partyNameByCode[partySelect.value] || "基準政党";
-    semanticLeft = targetName + "が優勢";
-    semanticRight = baseName + "が優勢";
-  }
+  const ctx = buildLabelContext();
+  const config = MODE_LABELS[ctx.mode];
+  const semanticLeft = config?.semanticLeft ? resolveLabel(config.semanticLeft, ctx) : "";
+  const semanticRight = config?.semanticRight ? resolveLabel(config.semanticRight, ctx) : "";
   const semanticRow = (isSignedDiffMode() || isRulingRatioMode() || isSelectedRatioMode())
     ? `<div class="legend-axis"><span>${semanticLeft}</span><span>${(isRulingRatioMode() || isSelectedRatioMode()) ? "拮抗 (1.00)" : "拮抗"}</span><span>${semanticRight}</span></div>`
     : "";
@@ -170,39 +162,9 @@ export function updateLegend() {
 
 export function updateLegendTitle() {
   if (!legendTitleEl) return;
-  if (isPartyRankMode()) {
-    legendTitleEl.textContent = "凡例（順位）";
-    return;
-  }
-  if (isRankMode()) {
-    legendTitleEl.textContent = "凡例（政党）";
-    return;
-  }
-  if (isSelectedVsTopMode()) {
-    const baseName = state.partyNameByCode[partySelect.value] || "基準政党";
-    const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || "比較対象";
-    legendTitleEl.textContent = getSelectedMetricMode() === "ratio"
-      ? `凡例（比: ${baseName} / ${targetName}）`
-      : `凡例（差: ${baseName} − ${targetName}）`;
-    return;
-  }
-  if (isRulingVsOppositionMode()) {
-    legendTitleEl.textContent = getRulingMetricMode() === "ratio"
-      ? "凡例（比: 与党/野党）"
-      : "凡例（差分: 与党 - 野党）";
-    return;
-  }
-  if (isConcentrationMode()) {
-    legendTitleEl.textContent = "凡例（ハーフィンダール・ハーシュマン指数）";
-    return;
-  }
-  if (isWinnerMarginMode()) {
-    legendTitleEl.textContent = "凡例（上位2党の得票率差）";
-    return;
-  }
-  if (isNationalDivergenceMode()) {
-    legendTitleEl.textContent = "凡例（全国平均からの乖離度）";
-    return;
-  }
-  legendTitleEl.textContent = "凡例（得票率）";
+  const ctx = buildLabelContext();
+  const config = MODE_LABELS[ctx.mode];
+  legendTitleEl.textContent = config?.legendTitle
+    ? resolveLabel(config.legendTitle, ctx)
+    : "凡例（得票率）";
 }

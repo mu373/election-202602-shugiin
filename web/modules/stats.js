@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { granularitySelect, plotModeSelect, partySelect, rankSelect, statsEl } from "./dom.js";
+import { granularitySelect, plotModeSelect, partySelect, rankSelect, statsEl, statsMirrorEl } from "./dom.js";
 import {
   isPartyRankMode,
   isRankMode,
@@ -17,6 +17,7 @@ import {
 } from "./modes.js";
 import { getRankedPartiesForFeature } from "./data.js";
 import { pct, ppLabel, ppSignedLabel, ratioLabel } from "./format.js";
+import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
 
 function getGranularityLabel() {
   if (granularitySelect.value === "muni") return "市区町村";
@@ -25,7 +26,14 @@ function getGranularityLabel() {
 }
 
 export function updateStats() {
+  updateStatsContent();
+  if (statsMirrorEl) statsMirrorEl.innerHTML = statsEl.innerHTML;
+}
+
+function updateStatsContent() {
   if (isPartyRankMode()) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
     const selectedCode = partySelect.value;
     const partyName = state.partyNameByCode[selectedCode] || selectedCode;
     const counts = {};
@@ -37,7 +45,7 @@ export function updateStats() {
     const firstPlaceCount = counts[1] || 0;
     const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
     statsEl.innerHTML = `
-      <div class="name">${partyName} の順位分布</div>
+      <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
       <div>表示単位: ${getGranularityLabel()}</div>
       <div>第1位の件数: ${firstPlaceCount.toLocaleString()}</div>
       <div>最頻順位: ${top ? `第${top[0]}位` : "N/A"} (${top ? top[1].toLocaleString() : 0})</div>
@@ -46,6 +54,8 @@ export function updateStats() {
   }
 
   if (isRankMode()) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
     const rank = Number.parseInt(rankSelect.value, 10) || 1;
     const counts = {};
     const geo = state.geojsonByGranularity[granularitySelect.value];
@@ -58,11 +68,7 @@ export function updateStats() {
     const top = sorted[0];
     const bottom = sorted[sorted.length - 1];
     statsEl.innerHTML = `
-      <div class="name">${
-        plotModeSelect.value === "opposition_rank"
-          ? `野党第${rank}党`
-          : `得票率第${rank}位の政党`
-      }</div>
+      <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
       <div>表示単位: ${getGranularityLabel()}</div>
       <div>最多: ${top ? `${state.partyNameByCode[top[0]] || top[0]} (${top[1].toLocaleString()})` : "N/A"}</div>
       <div>最少: ${bottom ? `${state.partyNameByCode[bottom[0]] || bottom[0]} (${bottom[1].toLocaleString()})` : "N/A"}</div>
@@ -71,6 +77,8 @@ export function updateStats() {
   }
 
   if (isSelectedVsTopMode()) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
     const selectedCode = partySelect.value;
     const selectedName = state.partyNameByCode[selectedCode] || selectedCode;
     const targetLabel = getCompareTargetLabel();
@@ -86,7 +94,7 @@ export function updateStats() {
       }
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">${selectedName}と${targetLabel}${metricMode === "ratio" ? "の比" : "の得票率差"}</div><div>データなし</div>`;
+      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
       return;
     }
     const metricKey = metricMode === "ratio" ? "ratio" : "gap";
@@ -97,7 +105,7 @@ export function updateStats() {
     const avgValue = rows.reduce((acc, r) => acc + r[metricKey], 0) / rows.length;
     const fmt = (v) => (metricMode === "ratio" ? ratioLabel(v) : ppSignedLabel(v));
     statsEl.innerHTML = `
-      <div class="name">${selectedName}と${targetLabel}${metricMode === "ratio" ? "の比" : "の得票率差"}</div>
+      <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
       <div>平均: ${fmt(avgValue)}</div>
       <div>最小: ${fmt(closest[metricKey])} (${closest.label})</div>
       <div>最大: ${fmt(farthest[metricKey])} (${farthest.label})</div>
@@ -106,6 +114,8 @@ export function updateStats() {
   }
 
   if (isRulingVsOppositionMode()) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
     const geo = state.geojsonByGranularity[granularitySelect.value];
     const rows = [];
     for (const feature of geo?.features || []) {
@@ -117,10 +127,7 @@ export function updateStats() {
       }
     }
     if (!rows.length) {
-      const emptyTitle = getRulingMetricMode() === "ratio"
-        ? "与党（自民・維新）/野党（それ以外）"
-        : "与党と野党の差";
-      statsEl.innerHTML = `<div class="name">${emptyTitle}</div><div>データなし</div>`;
+      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
       return;
     }
     const metricMode = getRulingMetricMode();
@@ -131,11 +138,8 @@ export function updateStats() {
     const farthest = sortedDesc[0];
     const avgValue = rows.reduce((acc, r) => acc + r[metricKey], 0) / rows.length;
     const fmt = (v) => (metricMode === "ratio" ? ratioLabel(v) : ppSignedLabel(v));
-    const title = metricMode === "ratio"
-      ? "与党（自民・維新）/野党（それ以外）"
-      : "与党と野党の差";
     statsEl.innerHTML = `
-      <div class="name">${title}</div>
+      <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
       <div>平均: ${fmt(avgValue)}</div>
       <div>最小: ${fmt(closest[metricKey])} (${closest.label})</div>
       <div>最大: ${fmt(farthest[metricKey])} (${farthest.label})</div>
@@ -144,6 +148,8 @@ export function updateStats() {
   }
 
   if (isConcentrationMode()) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
     const geo = state.geojsonByGranularity[granularitySelect.value];
     const rows = [];
     for (const feature of geo?.features || []) {
@@ -151,7 +157,7 @@ export function updateStats() {
       if (typeof s.concentration === "number" && !Number.isNaN(s.concentration)) rows.push(s);
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">ハーフィンダール・ハーシュマン指数 (HHI)</div><div>データなし</div>`;
+      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
       return;
     }
     const avgHHI = rows.reduce((acc, r) => acc + r.concentration, 0) / rows.length;
@@ -159,7 +165,7 @@ export function updateStats() {
     const minHHI = [...rows].sort((a, b) => a.concentration - b.concentration)[0];
     const avgEffective = avgHHI > 0 ? (1 / avgHHI) : null;
     statsEl.innerHTML = `
-      <div class="name">ハーフィンダール・ハーシュマン指数 (HHI)</div>
+      <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
       <div>表示単位: ${getGranularityLabel()}</div>
       <div>平均HHI: ${avgHHI.toFixed(3)}</div>
       <div>平均実効政党数 (1/HHI): ${avgEffective == null ? "N/A" : avgEffective.toFixed(2)}</div>
@@ -170,6 +176,8 @@ export function updateStats() {
   }
 
   if (isWinnerMarginMode()) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
     const geo = state.geojsonByGranularity[granularitySelect.value];
     const rows = [];
     for (const feature of geo?.features || []) {
@@ -177,14 +185,14 @@ export function updateStats() {
       if (typeof s.margin === "number" && !Number.isNaN(s.margin)) rows.push(s);
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">上位2党の得票率差（接戦度）</div><div>データなし</div>`;
+      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
       return;
     }
     const avg = rows.reduce((acc, r) => acc + r.margin, 0) / rows.length;
     const maxRow = [...rows].sort((a, b) => b.margin - a.margin)[0];
     const minRow = [...rows].sort((a, b) => a.margin - b.margin)[0];
     statsEl.innerHTML = `
-      <div class="name">上位2党の得票率差（接戦度）</div>
+      <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
       <div>表示単位: ${getGranularityLabel()}</div>
       <div>平均: ${ppLabel(avg)}</div>
       <div>最も接戦: ${minRow.label} (${ppLabel(minRow.margin)})</div>
@@ -194,6 +202,8 @@ export function updateStats() {
   }
 
   if (isNationalDivergenceMode()) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
     const geo = state.geojsonByGranularity[granularitySelect.value];
     const rows = [];
     for (const feature of geo?.features || []) {
@@ -201,14 +211,14 @@ export function updateStats() {
       if (typeof s.nationalDivergence === "number" && !Number.isNaN(s.nationalDivergence)) rows.push(s);
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">全国平均との差異度</div><div>データなし</div>`;
+      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
       return;
     }
     const avg = rows.reduce((acc, r) => acc + r.nationalDivergence, 0) / rows.length;
     const maxRow = [...rows].sort((a, b) => b.nationalDivergence - a.nationalDivergence)[0];
     const minRow = [...rows].sort((a, b) => a.nationalDivergence - b.nationalDivergence)[0];
     statsEl.innerHTML = `
-      <div class="name"><span>全国平均からの乖離度</span><span>(Jensen-Shannon距離)</span></div>
+      <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
       <div>表示単位: ${getGranularityLabel()}</div>
       <div>平均: ${avg.toFixed(3)}</div>
       <div>最も全国平均から乖離: ${maxRow.label} (${maxRow.nationalDivergence.toFixed(3)})</div>

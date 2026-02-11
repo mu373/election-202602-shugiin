@@ -31,6 +31,7 @@ export let legendPanel = null;
 export let sidebarClose = null;
 export let legendModeLabel = null;
 export let legendModeDesc = null;
+export let statsMirrorEl = null;
 
 export function initDomRefs() {
   partySelect = document.getElementById("partySelect");
@@ -66,4 +67,5 @@ export function initDomRefs() {
   sidebarClose = document.getElementById("sidebarClose");
   legendModeLabel = document.getElementById("legendModeLabel");
   legendModeDesc = document.getElementById("legendModeDesc");
+  statsMirrorEl = document.getElementById("statsMirror");
 }

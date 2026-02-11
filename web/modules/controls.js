@@ -34,6 +34,7 @@ import {
   getSelectedMetricMode,
   getRulingMetricMode,
 } from "./modes.js";
+import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
 import {
   SELECTED_DIFF_DEFAULT_BASE,
   SELECTED_DIFF_DEFAULT_TARGET,
@@ -117,22 +118,17 @@ export function updateControlVisibility() {
   groupRank.classList.toggle("hidden", !isRank);
   groupPrefBorders.classList.toggle("hidden", !isMuni);
   modeHelpEl.classList.toggle("hidden", !showModeHelp);
-  if (plotModeSelect.value === "opposition_rank") {
-    modeHelpEl.textContent = "各地域で自民党を除いた得票率第N位の政党を色分け表示します。";
-  } else if (plotModeSelect.value === "party_rank") {
-    modeHelpEl.textContent = "選択した政党の順位（第1位, 第2位, ...）を地域ごとに色分け表示します。";
-  } else if (plotModeSelect.value === "rank") {
-    modeHelpEl.textContent = "各地域で得票率第N位の政党を色分け表示します。";
-  } else if (plotModeSelect.value === "selected_diff") {
-    modeHelpEl.textContent = "二つの政党（基準政党と比較対象）の比較を表示します。";
-  } else if (plotModeSelect.value === "ruling_vs_opposition") {
-    modeHelpEl.textContent = "与党（自民・維新）と野党（それ以外）の比較を表示します。";
-  } else if (plotModeSelect.value === "concentration") {
-    modeHelpEl.innerHTML = `<a href="https://ja.wikipedia.org/wiki/%E3%83%8F%E3%83%BC%E3%83%95%E3%82%A3%E3%83%B3%E3%83%80%E3%83%BC%E3%83%AB%E3%83%BB%E3%83%8F%E3%83%BC%E3%82%B7%E3%83%A5%E3%83%9E%E3%83%B3%E3%83%BB%E3%82%A4%E3%83%B3%E3%83%87%E3%83%83%E3%82%AF%E3%82%B9" target="_blank" rel="noopener noreferrer">ハーフィンダール・ハーシュマン指数 (HHI)</a> を表示します。値が高いほど特定政党への集中が強いことを示します。`;
-  } else if (plotModeSelect.value === "winner_margin") {
-    modeHelpEl.textContent = "上位2党の得票率差（1位−2位）を表示します。値が小さいほど接戦、値が大きいほど1位が優勢です。";
-  } else if (plotModeSelect.value === "js_divergence") {
-    modeHelpEl.innerHTML = "政党投票構成の全国平均からの乖離度を <a href=\"https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence\" target=\"_blank\" rel=\"noopener noreferrer\">Jensen-Shannon距離</a> で表示します。値が0に近いほど全国平均に近く、値が高いほど平均からの乖離が大きいことを示します。";
+  if (showModeHelp) {
+    const ctx = buildLabelContext();
+    const config = MODE_LABELS[ctx.mode];
+    if (config?.modeHelp) {
+      const text = resolveLabel(config.modeHelp, ctx);
+      if (config.modeHelpIsHtml) {
+        modeHelpEl.innerHTML = text;
+      } else {
+        modeHelpEl.textContent = text;
+      }
+    }
   }
 }
 
