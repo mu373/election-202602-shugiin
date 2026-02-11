@@ -1,10 +1,7 @@
 import { useEffect, useState } from 'react';
 import { ActionButtons } from './components/ActionButtons';
-import { ControlPanel } from './components/ControlPanel';
-import { InfoModal } from './components/InfoModal';
-import { LegendPanel } from './components/LegendPanel';
-import { MapView } from './components/MapView';
-import { StatsPanel } from './components/StatsPanel';
+import { MapView } from './components/map';
+import { ControlPanel, InfoModal, LegendPanel, StatsPanel } from './components/panels';
 import { useUrlState } from './hooks/useUrlState';
 import { useElectionStore } from './store/electionStore';
 

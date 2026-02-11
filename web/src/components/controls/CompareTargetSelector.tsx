@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useElectionStore } from '../store/electionStore';
+import { useElectionStore } from '../../store/electionStore';
 
 export function CompareTargetSelector() {
   const parties = useElectionStore((s) => s.parties);

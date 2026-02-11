@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useMap } from 'react-leaflet';
-import { updateLabels } from '../lib/mapHelpers';
-import { useElectionStore } from '../store/electionStore';
+import { updateLabels } from '../../lib/map/labels';
+import { useElectionStore } from '../../store/electionStore';
 
 export function LabelsManager() {
   const map = useMap();

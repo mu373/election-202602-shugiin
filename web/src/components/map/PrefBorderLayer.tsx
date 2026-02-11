@@ -1,8 +1,8 @@
 import type { GeoJSON, Renderer } from 'leaflet';
 import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
-import { updatePrefBorderLayer } from '../lib/mapHelpers';
-import { useElectionStore } from '../store/electionStore';
+import { updatePrefBorderLayer } from '../../lib/map/interactions';
+import { useElectionStore } from '../../store/electionStore';
 
 interface PrefBorderLayerProps {
   renderer: Renderer;

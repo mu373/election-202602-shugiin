@@ -1,4 +1,4 @@
-import { useElectionStore } from '../store/electionStore';
+import { useElectionStore } from '../../store/electionStore';
 
 export function RankSelector() {
   const rank = useElectionStore((s) => s.rank);

@@ -1,23 +1,17 @@
 import type { ReactNode } from 'react';
-import { MODE_LABELS, buildLabelContext, resolveLabel } from '../lib/modeLabels';
+import { getModeHandler } from '../../lib/modes/registry';
+import { buildLabelContext, resolveLabel } from '../../lib/modes/labelUtils';
+import { useElectionStore } from '../../store/electionStore';
 import {
-  isAnyRankMode,
-  isConcentrationMode,
-  isNationalDivergenceMode,
-  isRankMode,
-  isRulingVsOppositionMode,
-  isSelectedVsTopMode,
-  isWinnerMarginMode,
-} from '../lib/modes';
-import { useElectionStore } from '../store/electionStore';
-import { CompareTargetSelector } from './CompareTargetSelector';
-import { DisplayToggles } from './DisplayToggles';
-import { GranularitySelector } from './GranularitySelector';
-import { MetricSelector } from './MetricSelector';
-import { ModeSelector } from './ModeSelector';
-import { PartySelector } from './PartySelector';
-import { RankSelector } from './RankSelector';
-import { ScaleModeSelector } from './ScaleModeSelector';
+  CompareTargetSelector,
+  DisplayToggles,
+  GranularitySelector,
+  MetricSelector,
+  ModeSelector,
+  PartySelector,
+  RankSelector,
+  ScaleModeSelector,
+} from '../controls';
 
 interface ControlPanelProps {
   open: boolean;
@@ -36,19 +30,8 @@ export function ControlPanel({ open, onClose, sidebarStats }: ControlPanelProps)
   const rank = useElectionStore((s) => s.rank);
   const partyNameByCode = useElectionStore((s) => s.partyNameByCode);
 
-  const isRank = isRankMode(plotMode);
-  const isSelectedVsTop = isSelectedVsTopMode(plotMode);
-  const isRulingVsOpposition = isRulingVsOppositionMode(plotMode);
-  const isConcentration = isConcentrationMode(plotMode);
-  const isWinnerMargin = isWinnerMarginMode(plotMode);
-  const isNationalDivergence = isNationalDivergenceMode(plotMode);
-
-  const showModeHelp = isAnyRankMode(plotMode)
-    || isSelectedVsTop
-    || isRulingVsOpposition
-    || isConcentration
-    || isWinnerMargin
-    || isNationalDivergence;
+  const handler = getModeHandler(plotMode);
+  const { controls, labels } = handler;
 
   const labelCtx = buildLabelContext({
     plotMode,
@@ -60,7 +43,6 @@ export function ControlPanel({ open, onClose, sidebarStats }: ControlPanelProps)
     partyNameByCode,
     parties,
   });
-  const config = MODE_LABELS[labelCtx.mode];
 
   return (
     <aside className={`sidebar ${open ? 'open' : ''}`}>
@@ -72,12 +54,12 @@ export function ControlPanel({ open, onClose, sidebarStats }: ControlPanelProps)
 
       <ModeSelector />
 
-      {showModeHelp && config.modeHelp ? (
-        <div id="modeHelp" className="help" dangerouslySetInnerHTML={config.modeHelpIsHtml
-          ? { __html: resolveLabel(config.modeHelp, labelCtx) }
+      {controls.showModeHelp && labels.controlHelp ? (
+        <div id="modeHelp" className="help" dangerouslySetInnerHTML={labels.controlHelpIsHtml
+          ? { __html: resolveLabel(labels.controlHelp, labelCtx) }
           : undefined}
         >
-          {!config.modeHelpIsHtml ? resolveLabel(config.modeHelp, labelCtx) : undefined}
+          {!labels.controlHelpIsHtml ? resolveLabel(labels.controlHelp, labelCtx) : undefined}
         </div>
       ) : (
         <div id="modeHelp" className="help hidden" />
@@ -85,13 +67,13 @@ export function ControlPanel({ open, onClose, sidebarStats }: ControlPanelProps)
 
       <GranularitySelector />
 
-      {!(isRank || isConcentration || isWinnerMargin || isRulingVsOpposition || isNationalDivergence) ? (
-        <PartySelector label={isSelectedVsTop ? '基準政党' : '政党'} />
+      {controls.showPartySelector ? (
+        <PartySelector label={controls.partySelectorLabel || '政党'} />
       ) : null}
 
-      {isSelectedVsTop ? <CompareTargetSelector /> : null}
+      {controls.showCompareTarget ? <CompareTargetSelector /> : null}
 
-      {isSelectedVsTop ? (
+      {controls.showSelectedMetric ? (
         <>
           <MetricSelector kind="selected" />
           <div id="selectedMetricHelp" className="help">
@@ -104,7 +86,7 @@ export function ControlPanel({ open, onClose, sidebarStats }: ControlPanelProps)
         <div id="selectedMetricHelp" className="help hidden" />
       )}
 
-      {isRulingVsOpposition ? (
+      {controls.showRulingMetric ? (
         <>
           <MetricSelector kind="ruling" />
           <div id="rulingMetricHelp" className="help">
@@ -117,7 +99,7 @@ export function ControlPanel({ open, onClose, sidebarStats }: ControlPanelProps)
         <div id="rulingMetricHelp" className="help hidden" />
       )}
 
-      {plotMode === 'share' ? (
+      {controls.showScaleMode ? (
         <>
           <ScaleModeSelector />
           <div id="scaleHelp" className="help">固定: 政党間で同じ基準。<br />政党別: 選択中政党内で濃淡を見やすく調整。</div>
@@ -126,7 +108,7 @@ export function ControlPanel({ open, onClose, sidebarStats }: ControlPanelProps)
         <div id="scaleHelp" className="help hidden" />
       )}
 
-      {isRank ? <RankSelector /> : null}
+      {controls.showRankSelector ? <RankSelector /> : null}
 
       <div className="block-title display-settings-title">表示設定</div>
       <DisplayToggles showPrefBorders={granularity === 'muni'} />

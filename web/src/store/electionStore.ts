@@ -9,27 +9,12 @@ import {
   DEFAULT_SCALE_MODE,
   DEFAULT_SELECTED_METRIC,
   FIXED_BREAKS,
-  GITHUB_RAW_BASE,
-  LOCAL_DATA_BASE,
   SELECTED_DIFF_DEFAULT_BASE,
   SELECTED_DIFF_DEFAULT_TARGET,
 } from '../lib/constants';
-import { quantile } from '../lib/colors';
 import { buildAggregates, buildPartyColorMap } from '../lib/data';
-import {
-  computeActivePartyRankMax,
-  computeActiveScale,
-  getFeatureRenderStats,
-  getNationalDivergenceValuesForCurrentGranularity,
-  getRulingOppositionValuesForCurrentGranularity,
-  getSelectedVsTopValuesForCurrentGranularity,
-  getWinnerMarginValuesForCurrentGranularity,
-  isConcentrationMode,
-  isNationalDivergenceMode,
-  isRulingVsOppositionMode,
-  isSelectedVsTopMode,
-  isWinnerMarginMode,
-} from '../lib/modes';
+import { loadDataWithFallback } from './dataLoading';
+import { recompute, sanitizeRank } from './recompute';
 import type {
   Aggregate,
   ElectionGeoJson,
@@ -37,13 +22,13 @@ import type {
   GeoJsonByGranularity,
   Granularity,
   MetricMode,
-  ModeContext,
   Party,
   PlotMode,
   ScaleMode,
 } from '../types';
 
-interface ElectionStore {
+/** Shape of the Zustand election store: data, UI state, derived values, and actions. */
+export interface ElectionStore {
   geojsonByGranularity: GeoJsonByGranularity;
   electionData: Record<string, ElectionRecord>;
   parties: Party[];
@@ -94,63 +79,7 @@ interface ElectionStore {
   recompute: () => void;
 }
 
-function getConfiguredDataSourceMode(): 'local' | 'remote' | null {
-  const mode = import.meta.env.VITE_DATA_SOURCE_MODE as string | undefined;
-  if (mode === 'local' || mode === 'remote') return mode;
-  return null;
-}
-
-function getDataUrlOrder(fileName: string): string[] {
-  const localUrl = `${LOCAL_DATA_BASE}/${fileName}`;
-  const remoteUrl = `${GITHUB_RAW_BASE}/${fileName}`;
-  const mode = getConfiguredDataSourceMode() || 'remote';
-  return mode === 'local' ? [localUrl] : [remoteUrl, localUrl];
-}
-
-async function loadDataWithFallback(fileName: string): Promise<unknown> {
-  const urls = getDataUrlOrder(fileName);
-  let lastError: unknown = null;
-
-  for (const url of urls) {
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`${res.status} ${res.statusText}`);
-      }
-      return await res.json();
-    } catch (err) {
-      lastError = err;
-    }
-  }
-
-  const message = lastError instanceof Error ? lastError.message : 'unknown error';
-  throw new Error(`Failed to load ${fileName}: ${message}`);
-}
-
-function buildModeContext(state: ElectionStore): ModeContext {
-  return {
-    plotMode: state.plotMode,
-    granularity: state.granularity,
-    selectedParty: state.selectedParty,
-    compareTarget: state.compareTarget,
-    selectedMetric: state.selectedMetric,
-    rulingMetric: state.rulingMetric,
-    rank: state.rank,
-    electionData: state.electionData,
-    prefAgg: state.prefAgg,
-    blockAgg: state.blockAgg,
-    parties: state.parties,
-    partyNameByCode: state.partyNameByCode,
-    activePartyRankMax: state.activePartyRankMax,
-  };
-}
-
-function sanitizeRank(rank: number, partiesLength: number): number {
-  const max = Math.max(partiesLength, 1);
-  const safe = Number.isFinite(rank) ? Math.floor(rank) : 1;
-  return Math.max(1, Math.min(max, safe));
-}
-
+/** The global Zustand store for election data, UI state, and derived rendering values. */
 export const useElectionStore = create<ElectionStore>((set, get) => ({
   geojsonByGranularity: { muni: null, pref: null, block: null },
   electionData: {},
@@ -330,99 +259,6 @@ export const useElectionStore = create<ElectionStore>((set, get) => ({
   },
 
   recompute() {
-    const state = get();
-    const geo = state.geojsonByGranularity[state.granularity];
-    const modeCtx = buildModeContext(state);
-
-    const activePartyRankMax = computeActivePartyRankMax(modeCtx, geo);
-    let activeBreaks = state.activeBreaks;
-    let activeMax = state.activeMax;
-    let activeMin = state.activeMin;
-    let activeCrossesZero = state.activeCrossesZero;
-
-    if (state.plotMode === 'share') {
-      const scale = computeActiveScale(state.scaleMode, state.selectedParty, modeCtx);
-      activeBreaks = scale.breaks;
-      activeMax = scale.max;
-      activeMin = 0;
-      activeCrossesZero = false;
-    } else if (isSelectedVsTopMode(state.plotMode)) {
-      const values = getSelectedVsTopValuesForCurrentGranularity(
-        state.selectedParty,
-        state.compareTarget,
-        state.selectedMetric,
-        geo,
-        modeCtx,
-      ).sort((a, b) => a - b);
-
-      if (!values.length) {
-        activeMin = -0.01;
-        activeMax = 0.01;
-        activeCrossesZero = true;
-      } else {
-        const q05 = quantile(values, 0.05);
-        const q95 = quantile(values, 0.95);
-        const maxAbs = Math.max(Math.abs(q05), Math.abs(q95), 0.01);
-        activeMin = -maxAbs;
-        activeMax = maxAbs;
-        activeCrossesZero = true;
-      }
-    } else if (isRulingVsOppositionMode(state.plotMode)) {
-      const values = getRulingOppositionValuesForCurrentGranularity(
-        state.rulingMetric,
-        geo,
-        modeCtx,
-      ).sort((a, b) => a - b);
-
-      if (!values.length) {
-        activeMin = -0.01;
-        activeMax = 0.01;
-        activeCrossesZero = true;
-      } else {
-        const q05 = quantile(values, 0.05);
-        const q95 = quantile(values, 0.95);
-        const maxAbs = Math.max(Math.abs(q05), Math.abs(q95), 0.01);
-        activeMin = -maxAbs;
-        activeMax = maxAbs;
-        activeCrossesZero = true;
-      }
-    } else if (isConcentrationMode(state.plotMode)) {
-      activeMin = 0;
-      activeCrossesZero = false;
-
-      const values: number[] = [];
-      for (const feature of geo?.features || []) {
-        const stats = getFeatureRenderStats(feature, { ...modeCtx, activePartyRankMax });
-        if (typeof stats.share === 'number' && !Number.isNaN(stats.share)) values.push(stats.share);
-      }
-
-      values.sort((a, b) => a - b);
-      const q95 = quantile(values, 0.95);
-      activeMax = q95 > 0 ? q95 : 1;
-    } else if (isWinnerMarginMode(state.plotMode)) {
-      activeMin = 0;
-      activeCrossesZero = false;
-
-      const values = getWinnerMarginValuesForCurrentGranularity(geo, modeCtx).sort((a, b) => a - b);
-      const q95 = quantile(values, 0.95);
-      activeMax = q95 > 0 ? q95 : 1;
-    } else if (isNationalDivergenceMode(state.plotMode)) {
-      activeMin = 0;
-      activeCrossesZero = false;
-
-      const values = getNationalDivergenceValuesForCurrentGranularity(geo, modeCtx).sort((a, b) => a - b);
-      const q95 = quantile(values, 0.95);
-      activeMax = q95 > 0 ? q95 : 1;
-    }
-
-    set({
-      activePartyRankMax,
-      activeBreaks,
-      activeMax,
-      activeMin,
-      activeCrossesZero,
-    });
+    recompute(get, set);
   },
 }));
-
-export type { ElectionStore };

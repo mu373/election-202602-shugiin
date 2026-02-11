@@ -1,5 +1,5 @@
-import { useElectionStore } from '../store/electionStore';
-import type { MetricMode } from '../types';
+import { useElectionStore } from '../../store/electionStore';
+import type { MetricMode } from '../../types';
 
 interface MetricSelectorProps {
   kind: 'selected' | 'ruling';

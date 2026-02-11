@@ -2,21 +2,17 @@ import type { Feature } from 'geojson';
 import L, { type GeoJSON, type Renderer } from 'leaflet';
 import { useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
-import {
-  bindFeatureInteractions,
-  ensureGeoPane,
-  featureStyle,
-  type MapRenderContext,
-  updateGeoPaneBlendMode,
-} from '../lib/mapHelpers';
-import { useElectionStore } from '../store/electionStore';
-import type { ModeContext } from '../types';
+import { ensureGeoPane, updateGeoPaneBlendMode } from '../../lib/map/pane';
+import { featureStyle, type MapRenderContext } from '../../lib/map/featureStyle';
+import { bindFeatureInteractions } from '../../lib/map/interactions';
+import { useElectionStore } from '../../store/electionStore';
 
 interface GeoJsonLayerProps {
   renderer: Renderer;
 }
 
-function modeContextFromStore(state: ReturnType<typeof useElectionStore.getState>): ModeContext {
+/** Builds a MapRenderContext snapshot from the current store state. */
+function renderContextFromStore(state: ReturnType<typeof useElectionStore.getState>): MapRenderContext {
   return {
     plotMode: state.plotMode,
     granularity: state.granularity,
@@ -31,21 +27,15 @@ function modeContextFromStore(state: ReturnType<typeof useElectionStore.getState
     parties: state.parties,
     partyNameByCode: state.partyNameByCode,
     activePartyRankMax: state.activePartyRankMax,
-  };
-}
-
-function renderContextFromStore(state: ReturnType<typeof useElectionStore.getState>): MapRenderContext {
-  return {
-    ...modeContextFromStore(state),
     colorMap: state.partyColorByCode,
     activeMax: state.activeMax,
     activeMin: state.activeMin,
     activeCrossesZero: state.activeCrossesZero,
-    activePartyRankMax: state.activePartyRankMax,
     labelsVisible: state.labelsVisible,
   };
 }
 
+/** Manages the main GeoJSON choropleth layer on the Leaflet map. */
 export function GeoJsonLayer({ renderer }: GeoJsonLayerProps) {
   const map = useMap();
   const layerRef = useRef<GeoJSON | null>(null);

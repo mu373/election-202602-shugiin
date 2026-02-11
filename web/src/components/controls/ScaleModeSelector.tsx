@@ -1,5 +1,5 @@
-import { useElectionStore } from '../store/electionStore';
-import type { ScaleMode } from '../types';
+import { useElectionStore } from '../../store/electionStore';
+import type { ScaleMode } from '../../types';
 
 export function ScaleModeSelector() {
   const scaleMode = useElectionStore((s) => s.scaleMode);

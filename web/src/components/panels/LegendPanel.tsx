@@ -5,31 +5,25 @@ import {
   SELECTED_VS_TOP_DIVERGING_COLORS,
   SELECTED_VS_TOP_WORSE_COLORS,
   SHARE_COLORS,
-} from '../lib/constants';
-import { partyColor } from '../lib/data';
-import { ppLabel, pctLabel, ratioLabel } from '../lib/format';
-import { MODE_LABELS, buildLabelContext, resolveLabel } from '../lib/modeLabels';
-import {
-  getFeatureRenderStats,
-  getPartyRankColor,
-  isConcentrationMode,
-  isNationalDivergenceMode,
-  isPartyRankMode,
-  isRankMode,
-  isRulingRatioMode,
-  isSelectedRatioMode,
-  isSignedDiffMode,
-} from '../lib/modes';
-import { getRankedPartiesForFeature } from '../lib/data';
-import { useElectionStore } from '../store/electionStore';
-import type { ModeContext } from '../types';
+} from '../../lib/constants';
+import { partyColor } from '../../lib/data';
+import { ppLabel, pctLabel, ratioLabel } from '../../lib/format';
+import { getModeHandler } from '../../lib/modes/registry';
+import { buildLabelContext, resolveLabel } from '../../lib/modes/labelUtils';
+import { getFeatureRenderStats, getPartyRankColor } from '../../lib/modes/rendering';
+import { getRankedPartiesForFeature } from '../../lib/data';
+import { useElectionStore } from '../../store/electionStore';
+import type { ModeContext } from '../../types';
 
 interface LegendPanelProps {
   onToggleSidebar: () => void;
 }
 
-function buildModeContext(state: ReturnType<typeof useElectionStore.getState>): ModeContext {
-  return {
+/** Renders the map legend panel with mode-specific color scales and labels. */
+export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
+  const state = useElectionStore((s) => s);
+  const geo = state.geojsonByGranularity[state.granularity];
+  const modeCtx: ModeContext = useMemo(() => ({
     plotMode: state.plotMode,
     granularity: state.granularity,
     selectedParty: state.selectedParty,
@@ -43,13 +37,10 @@ function buildModeContext(state: ReturnType<typeof useElectionStore.getState>): 
     parties: state.parties,
     partyNameByCode: state.partyNameByCode,
     activePartyRankMax: state.activePartyRankMax,
-  };
-}
+  }), [state]);
 
-export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
-  const state = useElectionStore((s) => s);
-  const geo = state.geojsonByGranularity[state.granularity];
-  const modeCtx = useMemo(() => buildModeContext(state), [state]);
+  const handler = getModeHandler(state.plotMode);
+  const { labels } = handler;
 
   const labelCtx = buildLabelContext({
     plotMode: state.plotMode,
@@ -62,13 +53,19 @@ export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
     parties: state.parties,
   });
 
-  const config = MODE_LABELS[labelCtx.mode];
-  const legendTitle = config.legendTitle ? resolveLabel(config.legendTitle, labelCtx) : '凡例（得票率）';
-  const modeLabel = config.legendHeader ? resolveLabel(config.legendHeader, labelCtx) : labelCtx.modeText;
-  const modeDesc = config.description ? resolveLabel(config.description, labelCtx) : '';
+  const legendTitle = labels.legendSectionTitle ? resolveLabel(labels.legendSectionTitle, labelCtx) : '凡例（得票率）';
+  const modeLabel = labels.modeHeading ? resolveLabel(labels.modeHeading, labelCtx) : labelCtx.modeText;
+  const modeDesc = labels.modeSummary ? resolveLabel(labels.modeSummary, labelCtx) : '';
+
+  const isRankMode = state.plotMode === 'rank' || state.plotMode === 'opposition_rank';
+  const isPartyRankMode = state.plotMode === 'party_rank';
+  const isDiffMode = state.plotMode === 'selected_diff' || state.plotMode === 'ruling_vs_opposition';
+  const isRatio = (state.plotMode === 'ruling_vs_opposition' && state.rulingMetric === 'ratio')
+    || (state.plotMode === 'selected_diff' && state.selectedMetric === 'ratio');
+  const isSigned = isDiffMode && !isRatio;
 
   const content = useMemo(() => {
-    if (isPartyRankMode(state.plotMode)) {
+    if (isPartyRankMode) {
       const counts: Record<number, number> = {};
       for (const feature of geo?.features || []) {
         const stats = getFeatureRenderStats(feature, modeCtx);
@@ -110,10 +107,11 @@ export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
       );
     }
 
-    if (isRankMode(state.plotMode)) {
+    if (isRankMode) {
+      const excludedCode = state.plotMode === 'opposition_rank' ? 'jimin' : null;
       const counts: Record<string, number> = {};
       for (const feature of geo?.features || []) {
-        const ranked = getRankedPartiesForFeature(feature, state.plotMode === 'opposition_rank' ? 'jimin' : null, modeCtx);
+        const ranked = getRankedPartiesForFeature(feature, excludedCode, modeCtx);
         const p = ranked[state.rank - 1];
         if (p) counts[p.code] = (counts[p.code] || 0) + 1;
       }
@@ -134,13 +132,9 @@ export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
       );
     }
 
+    // Gradient-based modes
     const legendPalette = (() => {
-      if (isConcentrationMode(state.plotMode) || state.plotMode === 'winner_margin' || isNationalDivergenceMode(state.plotMode)) return SHARE_COLORS;
-      if (!(isSignedDiffMode(state.plotMode, state.selectedMetric, state.rulingMetric)
-        || isRulingRatioMode(state.plotMode, state.rulingMetric)
-        || isSelectedRatioMode(state.plotMode, state.selectedMetric))) {
-        return SHARE_COLORS;
-      }
+      if (!(isDiffMode || isRatio)) return SHARE_COLORS;
       if (state.activeCrossesZero) return SELECTED_VS_TOP_DIVERGING_COLORS;
       if (state.activeMin >= 0) return SELECTED_VS_TOP_BETTER_COLORS;
       return SELECTED_VS_TOP_WORSE_COLORS;
@@ -155,40 +149,27 @@ export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
     const ratioLeft = Math.exp(state.activeMin);
     const ratioRight = Math.exp(state.activeMax);
 
-    const isRatio = isRulingRatioMode(state.plotMode, state.rulingMetric)
-      || isSelectedRatioMode(state.plotMode, state.selectedMetric);
+    const isSequentialMode = state.plotMode === 'concentration'
+      || state.plotMode === 'winner_margin'
+      || state.plotMode === 'js_divergence';
 
-    const isSigned = isSignedDiffMode(state.plotMode, state.selectedMetric, state.rulingMetric);
+    const midLabel = isSequentialMode
+      ? (state.plotMode === 'winner_margin' ? ppLabel(state.activeMax / 2) : (state.activeMax / 2).toFixed(3))
+      : (isRatio ? ratioLabel(ratioMid) : (isSigned ? ppLabel(selectedMid) : pctLabel(state.activeMax / 2)));
 
-    const midLabel = isConcentrationMode(state.plotMode)
-      ? (state.activeMax / 2).toFixed(3)
-      : (state.plotMode === 'winner_margin'
-        ? ppLabel(state.activeMax / 2)
-        : (isNationalDivergenceMode(state.plotMode)
-          ? (state.activeMax / 2).toFixed(3)
-          : (isRatio ? ratioLabel(ratioMid) : (isSigned ? ppLabel(selectedMid) : pctLabel(state.activeMax / 2)))));
+    const leftLabel = isSequentialMode
+      ? (state.plotMode === 'winner_margin' ? ppLabel(0) : '0.000')
+      : (isRatio ? ratioLabel(ratioLeft) : (isSigned ? ppLabel(state.activeMin) : '0 %'));
 
-    const leftLabel = isConcentrationMode(state.plotMode)
-      ? '0.000'
-      : (state.plotMode === 'winner_margin'
-        ? ppLabel(0)
-        : (isNationalDivergenceMode(state.plotMode)
-          ? '0.000'
-          : (isRatio ? ratioLabel(ratioLeft) : (isSigned ? ppLabel(state.activeMin) : '0 %'))));
+    const rightLabel = isSequentialMode
+      ? (state.plotMode === 'winner_margin' ? ppLabel(state.activeMax) : state.activeMax.toFixed(3))
+      : (isRatio ? ratioLabel(ratioRight) : (isSigned ? ppLabel(state.activeMax) : pctLabel(state.activeMax)));
 
-    const rightLabel = isConcentrationMode(state.plotMode)
-      ? state.activeMax.toFixed(3)
-      : (state.plotMode === 'winner_margin'
-        ? ppLabel(state.activeMax)
-        : (isNationalDivergenceMode(state.plotMode)
-          ? state.activeMax.toFixed(3)
-          : (isRatio ? ratioLabel(ratioRight) : (isSigned ? ppLabel(state.activeMax) : pctLabel(state.activeMax)))));
-
-    const semanticLeft = ('semanticLeft' in config && config.semanticLeft)
-      ? resolveLabel(config.semanticLeft, labelCtx)
+    const lowSideLabel = ('lowSideLabel' in labels && labels.lowSideLabel)
+      ? resolveLabel(labels.lowSideLabel, labelCtx)
       : '';
-    const semanticRight = ('semanticRight' in config && config.semanticRight)
-      ? resolveLabel(config.semanticRight, labelCtx)
+    const highSideLabel = ('highSideLabel' in labels && labels.highSideLabel)
+      ? resolveLabel(labels.highSideLabel, labelCtx)
       : '';
 
     return (
@@ -201,9 +182,9 @@ export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
         </div>
         {isSigned || isRatio ? (
           <div className="legend-axis">
-            <span>{semanticLeft}</span>
+            <span>{lowSideLabel}</span>
             <span>{isRatio ? '拮抗 (1.00)' : '拮抗'}</span>
-            <span>{semanticRight}</span>
+            <span>{highSideLabel}</span>
           </div>
         ) : null}
         <div className="legend-row">
@@ -211,7 +192,7 @@ export function LegendPanel({ onToggleSidebar }: LegendPanelProps) {
         </div>
       </>
     );
-  }, [state, geo, modeCtx, config, labelCtx]);
+  }, [state, geo, modeCtx, labels, labelCtx, isRankMode, isPartyRankMode, isDiffMode, isRatio, isSigned]);
 
   return (
     <div className="legend-panel" id="legendPanel">

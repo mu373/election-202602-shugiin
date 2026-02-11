@@ -1,4 +1,4 @@
-import { useElectionStore } from '../store/electionStore';
+import { useElectionStore } from '../../store/electionStore';
 
 interface DisplayTogglesProps {
   showPrefBorders: boolean;

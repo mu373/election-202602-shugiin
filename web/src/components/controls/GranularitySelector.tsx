@@ -1,5 +1,5 @@
-import { useElectionStore } from '../store/electionStore';
-import type { Granularity } from '../types';
+import { useElectionStore } from '../../store/electionStore';
+import type { Granularity } from '../../types';
 
 export function GranularitySelector() {
   const granularity = useElectionStore((s) => s.granularity);

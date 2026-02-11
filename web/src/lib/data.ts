@@ -12,6 +12,7 @@ import type {
   RankedParty,
 } from '../types';
 
+/** Builds a code→color mapping for all parties, using explicit colors where available and a fallback palette otherwise. */
 export function buildPartyColorMap(parties: Party[]): Record<string, string> {
   const colorMap: Record<string, string> = {};
   const sortedCodes = parties.map((p) => p.code).sort();
@@ -29,11 +30,13 @@ export function buildPartyColorMap(parties: Party[]): Record<string, string> {
   return colorMap;
 }
 
+/** Returns the display color for a party code, falling back to gray. */
 export function partyColor(code: string | null | undefined, colorMap: Record<string, string>): string {
   if (!code) return '#9ca3af';
   return colorMap[code] || '#9ca3af';
 }
 
+/** Aggregates municipality-level election data into prefecture and block totals. */
 export function buildAggregates(
   electionData: Record<string, ElectionRecord>,
   prefToBlock: Record<string, string>,
@@ -77,6 +80,7 @@ export function buildAggregates(
   return { prefAgg, blockAgg };
 }
 
+/** Returns the vote share of a party in a specific municipality, or null if unavailable. */
 export function getShare(
   electionData: Record<string, ElectionRecord>,
   muniCode: string,
@@ -88,6 +92,7 @@ export function getShare(
   return typeof value === 'number' ? value : null;
 }
 
+/** Returns a party's vote share from an aggregate (prefecture or block), or null if unavailable. */
 export function getAggregateShare(agg: Aggregate | undefined, partyCode: string): number | null {
   if (!agg || !agg.valid_votes || !agg.party_votes) return null;
   const partyVotes = agg.party_votes[partyCode];
@@ -95,6 +100,7 @@ export function getAggregateShare(agg: Aggregate | undefined, partyCode: string)
   return partyVotes / agg.valid_votes;
 }
 
+/** Returns the label, share, and valid-vote count for a feature at the current granularity. */
 export function getFeatureStats(
   feature: ElectionFeature,
   partyCode: string,
@@ -138,6 +144,10 @@ export function getFeatureStats(
   };
 }
 
+/**
+ * Returns all parties for a feature ranked by vote share descending,
+ * optionally excluding a specific party (e.g. for opposition rankings).
+ */
 export function getRankedPartiesForFeature(
   feature: ElectionFeature,
   excludedPartyCode: string | null,
@@ -167,6 +177,7 @@ export function getRankedPartiesForFeature(
     .sort((a, b) => b.share - a.share);
 }
 
+/** Returns all vote shares for a party at the given granularity level. */
 export function getSharesForCurrentGranularity(
   partyCode: string,
   granularity: Granularity,
