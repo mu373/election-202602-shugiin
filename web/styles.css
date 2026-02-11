@@ -154,6 +154,9 @@ body {
   font-size: 18px;
   line-height: 1.4;
 }
+.title-chunk {
+  display: inline-block;
+}
 .subtitle {
   margin: -6px 0 12px;
   font-size: 12px;
