@@ -1,0 +1,19 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/hirei",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/hirei",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/senkyoku",
+      "destination": "/index.html"
+    }
+  ]
+}
