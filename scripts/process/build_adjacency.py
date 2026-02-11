@@ -16,6 +16,8 @@ from scipy import sparse
 from libpysal.weights import Queen
 from pathlib import Path
 
+from muni_code_canonical import EXCLUDE_CODES
+
 BASE = Path(__file__).resolve().parent.parent.parent
 GIS = BASE / "data" / "raw" / "gis"
 OUT = BASE / "data" / "processed"
@@ -114,8 +116,14 @@ def build_muni_adjacency():
     print("Dissolving by muni_code...")
     gdf_dissolved = gdf.dissolve(by="muni_code", as_index=False, aggfunc="first")
     gdf_dissolved = gdf_dissolved.sort_values("muni_code").reset_index(drop=True)
+    n_raw = len(gdf_dissolved)
+    print(f"  Dissolved: {n_raw} municipalities")
+
+    # Remove excluded codes (所属未定地 + 北方領土)
+    gdf_dissolved = gdf_dissolved[~gdf_dissolved["muni_code"].isin(EXCLUDE_CODES)].copy()
+    gdf_dissolved = gdf_dissolved.reset_index(drop=True)
     n = len(gdf_dissolved)
-    print(f"  Dissolved: {n} municipalities")
+    print(f"  After excluding {n_raw - n} codes: {n} municipalities")
 
     # Build Queen contiguity
     print("Computing Queen contiguity (this may take a moment)...")
