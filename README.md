@@ -2,7 +2,8 @@
 
 第51回衆議院議員選挙（令和8年2月8日執行）
 
-Coming soon: 階層ベイズによる政党得票率予測 with PyMC
+- 可視化マップ: https://election-202602-shugiin.vercel.app/
+- Coming soon: 階層ベイズによる政党得票率予測 with PyMC
 
 ## 主要データ
 
