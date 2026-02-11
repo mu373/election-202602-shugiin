@@ -235,9 +235,11 @@ export function getFeatureRenderStats(feature) {
     const chosen = ranked[rank - 1] || null;
     const base = getFeatureStats(feature, partySelect.value);
     const partyCode = chosen ? chosen.code : null;
+    const actualRank = partyCode ? getPartyRankForFeature(feature, partyCode).rank : null;
     return {
       ...base,
       rank,
+      actualRank,
       share: chosen ? chosen.share : null,
       partyCode,
       partyName: partyCode ? (state.partyNameByCode[partyCode] || partyCode) : null,

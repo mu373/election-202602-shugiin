@@ -52,16 +52,18 @@ export function updateStats() {
       const p = ranked[rank - 1];
       if (p) counts[p.code] = (counts[p.code] || 0) + 1;
     }
-    const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+    const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const top = sorted[0];
+    const bottom = sorted[sorted.length - 1];
     statsEl.innerHTML = `
       <div class="name">${
         plotModeSelect.value === "opposition_rank"
           ? `野党第${rank}党`
-          : `第${rank}位の政党`
+          : `得票率第${rank}位の政党`
       }</div>
       <div>表示単位: ${getGranularityLabel()}</div>
-      <div>最多: ${top ? (state.partyNameByCode[top[0]] || top[0]) : "N/A"}</div>
-      <div>件数: ${top ? top[1].toLocaleString() : 0}</div>
+      <div>最多: ${top ? `${state.partyNameByCode[top[0]] || top[0]} (${top[1].toLocaleString()})` : "N/A"}</div>
+      <div>最少: ${bottom ? `${state.partyNameByCode[bottom[0]] || bottom[0]} (${bottom[1].toLocaleString()})` : "N/A"}</div>
     `;
     return;
   }
@@ -82,7 +84,7 @@ export function updateStats() {
       }
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">${selectedName}と${targetLabel}${metricMode === "ratio" ? "の比" : "の差"}</div><div>データなし</div>`;
+      statsEl.innerHTML = `<div class="name">${selectedName}と${targetLabel}${metricMode === "ratio" ? "の比" : "の得票率差"}</div><div>データなし</div>`;
       return;
     }
     const metricKey = metricMode === "ratio" ? "ratio" : "gap";
@@ -93,7 +95,7 @@ export function updateStats() {
     const avgValue = rows.reduce((acc, r) => acc + r[metricKey], 0) / rows.length;
     const fmt = (v) => (metricMode === "ratio" ? ratioLabel(v) : ppSignedLabel(v));
     statsEl.innerHTML = `
-      <div class="name">${selectedName}と${targetLabel}${metricMode === "ratio" ? "の比" : "の差"}</div>
+      <div class="name">${selectedName}と${targetLabel}${metricMode === "ratio" ? "の比" : "の得票率差"}</div>
       <div>平均: ${fmt(avgValue)}</div>
       <div>最小: ${fmt(closest[metricKey])} (${closest.label})</div>
       <div>最大: ${fmt(farthest[metricKey])} (${farthest.label})</div>
@@ -115,7 +117,7 @@ export function updateStats() {
     if (!rows.length) {
       const emptyTitle = getRulingMetricMode() === "ratio"
         ? "与党（自民・維新）/野党（それ以外）"
-        : "与党（自民・維新）と野党（それ以外）の差";
+        : "与党と野党の差";
       statsEl.innerHTML = `<div class="name">${emptyTitle}</div><div>データなし</div>`;
       return;
     }
@@ -129,7 +131,7 @@ export function updateStats() {
     const fmt = (v) => (metricMode === "ratio" ? ratioLabel(v) : ppSignedLabel(v));
     const title = metricMode === "ratio"
       ? "与党（自民・維新）/野党（それ以外）"
-      : "与党（自民・維新）と野党（それ以外）の差";
+      : "与党と野党の差";
     statsEl.innerHTML = `
       <div class="name">${title}</div>
       <div>平均: ${fmt(avgValue)}</div>

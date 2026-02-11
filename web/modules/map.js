@@ -35,7 +35,7 @@ export function initMap() {
     preferCanvas: true,
     renderer: canvasRenderer,
     zoomControl: false,
-  }).setView([36.5, 138], 5);
+  }).setView([36.5, 138], 8);
   leafletMap.attributionControl.setPrefix(false);
   L.control.zoom({ position: "topright" }).addTo(leafletMap);
   L.tileLayer("https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png", {
@@ -112,16 +112,19 @@ function onEachFeature(feature, layer) {
       const stats = getFeatureRenderStats(feature);
       let popup;
       if (isRankMode()) {
+        const isOppositionRankMode = plotModeSelect.value === "opposition_rank";
+        const rankLabel = stats.actualRank != null ? `第${stats.actualRank}位` : "N/A";
+        const conditionLabel = isOppositionRankMode ? `野党第${stats.rank}党` : null;
+        const allRanksHtml = buildPartyRankPopupRows(feature, stats.partyCode);
         popup = `
           <strong>${stats.label}</strong><br>
-          順位: ${
-            plotModeSelect.value === "opposition_rank"
-              ? `野党第${stats.rank}党`
-              : `第${stats.rank}位`
-          }<br>
+          順位: ${rankLabel}<br>
+          ${conditionLabel ? `表示条件: ${conditionLabel}<br>` : ""}
           政党: ${stats.partyName || "N/A"}<br>
           得票率: ${pct(stats.share)}<br>
-          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}
+          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
+          ${allRanksHtml}
         `;
       } else if (isPartyRankMode()) {
         const selectedCode = partySelect.value;
@@ -155,7 +158,7 @@ function onEachFeature(feature, layer) {
           : ppSignedLabel(stats.gap);
         const diffLabel = stats.metricMode === "ratio"
           ? "与党（自民・維新）/野党（それ以外）"
-          : "与党（自民・維新）と野党（それ以外）の差";
+          : "与党と野党の差";
         const allRanksHtml = buildPartyRankPopupRows(feature, null, null);
         popup = `
           <strong>${stats.label}</strong><br>

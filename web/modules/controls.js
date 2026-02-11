@@ -95,14 +95,14 @@ export function updateControlVisibility() {
   if (isSelectedVsTop && selectedMetricHelpEl) {
     selectedMetricHelpEl.innerHTML = getSelectedMetricMode() === "ratio"
       ? "基準政党と比較対象の得票数の比率（基準/比較）を表示します。1.00が拮抗、1より大きいほど基準政党優勢、1より小さいほど基準政党劣勢です。"
-      : "基準政党と比較対象の得票率の差（基準 - 比較）を表示します。0.0 ptが拮抗、正の値は基準政党優勢、負の値は基準政党劣勢です。";
+      : "基準政党と比較対象の得票率の差（基準 - 比較）を表示します。0.0 ptは拮抗、正の値は基準政党優勢、負の値は基準政党劣勢を示します。";
   }
   groupRulingMetric.classList.toggle("hidden", !isRulingVsOpposition);
   rulingMetricHelpEl?.classList.toggle("hidden", !isRulingVsOpposition);
   if (isRulingVsOpposition && rulingMetricHelpEl) {
     rulingMetricHelpEl.innerHTML = getRulingMetricMode() === "ratio"
       ? "与党と野党の得票数の比率（与党/野党）を表示します。1.00が拮抗、1より大きいほど与党優勢、1より小さいほど野党優勢です。"
-      : "与党と野党の得票率の差（与党 - 野党）を表示します。0.0 ptが拮抗、正の値は与党優勢、負の値は野党優勢です。";
+      : "与党と野党の得票率の差（与党 - 野党）を表示します。0.0 ptは拮抗、正の値は与党優勢、負の値は野党優勢を示します。";
   }
   groupScaleMode.classList.toggle("hidden", plotModeSelect.value !== "share");
   scaleHelpEl.classList.toggle("hidden", plotModeSelect.value !== "share");
@@ -110,11 +110,11 @@ export function updateControlVisibility() {
   groupPrefBorders.classList.toggle("hidden", !isMuni);
   modeHelpEl.classList.toggle("hidden", !showModeHelp);
   if (plotModeSelect.value === "opposition_rank") {
-    modeHelpEl.textContent = "各地域で自民党を除いた第N位の政党を色分け表示します。";
+    modeHelpEl.textContent = "各地域で自民党を除いた得票率第N位の政党を色分け表示します。";
   } else if (plotModeSelect.value === "party_rank") {
     modeHelpEl.textContent = "選択した政党の順位（第1位, 第2位, ...）を地域ごとに色分け表示します。";
   } else if (plotModeSelect.value === "rank") {
-    modeHelpEl.textContent = "各地域で第N位の政党を色分け表示します。";
+    modeHelpEl.textContent = "各地域で得票率第N位の政党を色分け表示します。";
   } else if (plotModeSelect.value === "selected_diff") {
     modeHelpEl.textContent = "二つの政党（基準政党と比較対象）の比較を表示します。";
   } else if (plotModeSelect.value === "ruling_vs_opposition") {
@@ -126,10 +126,12 @@ export function updateControlVisibility() {
 
 export function readStateFromUrl() {
   const params = new URLSearchParams(window.location.search);
+  const defaultRank = state.parties.length >= 2 ? "2" : "1";
   if (!params.toString()) {
     granularitySelect.value = "muni";
     plotModeSelect.value = "share";
     partySelect.value = state.parties.some((p) => p.code === "mirai") ? "mirai" : (partySelect.value || "");
+    rankSelect.value = defaultRank;
     scaleModeSelect.value = "party";
     state.labelsVisible = true;
     labelToggle.checked = true;
@@ -150,6 +152,8 @@ export function readStateFromUrl() {
   if (qMode === "share" || qMode === "party_rank") {
     if (qParty && state.parties.some((p) => p.code === qParty)) {
       partySelect.value = qParty;
+    } else if (qMode === "party_rank" && state.parties.some((p) => p.code === "mirai")) {
+      partySelect.value = "mirai";
     }
   } else if (qMode === "selected_diff") {
     if (qBase && state.parties.some((p) => p.code === qBase)) {
@@ -183,6 +187,8 @@ export function readStateFromUrl() {
     if (Number.isInteger(rankNum) && rankNum >= 1 && rankNum <= state.parties.length) {
       rankSelect.value = String(rankNum);
     }
+  } else if (plotModeSelect.value === "rank" || plotModeSelect.value === "opposition_rank") {
+    rankSelect.value = defaultRank;
   }
   if (
     qTarget &&

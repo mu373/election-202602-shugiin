@@ -141,6 +141,11 @@ function handleControlChange() {
       compareTargetSelect.value = SELECTED_DIFF_DEFAULT_TARGET;
     }
   }
+  if (modeChanged && currentMode === "party_rank") {
+    if (state.parties.some((p) => p.code === "mirai")) {
+      partySelect.value = "mirai";
+    }
+  }
 
   state.labelsVisible = labelToggle.checked;
   state.prefBordersVisible = prefBorderToggle.checked;
