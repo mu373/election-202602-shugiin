@@ -6,6 +6,7 @@ import {
   isSelectedVsTopMode,
   isRulingVsOppositionMode,
   isConcentrationMode,
+  isNationalDivergenceMode,
   getCompareTargetLabel,
   getSelectedMetricMode,
   getRulingMetricMode,
@@ -163,6 +164,30 @@ export function updateStats() {
       <div>平均実効政党数 (1/HHI): ${avgEffective == null ? "N/A" : avgEffective.toFixed(2)}</div>
       <div>最も集中: ${maxHHI.label} (${maxHHI.concentration.toFixed(3)})</div>
       <div>最も分散: ${minHHI.label} (${minHHI.concentration.toFixed(3)})</div>
+    `;
+    return;
+  }
+
+  if (isNationalDivergenceMode()) {
+    const geo = state.geojsonByGranularity[granularitySelect.value];
+    const rows = [];
+    for (const feature of geo?.features || []) {
+      const s = getFeatureRenderStats(feature);
+      if (typeof s.nationalDivergence === "number" && !Number.isNaN(s.nationalDivergence)) rows.push(s);
+    }
+    if (!rows.length) {
+      statsEl.innerHTML = `<div class="name">全国平均との差異度</div><div>データなし</div>`;
+      return;
+    }
+    const avg = rows.reduce((acc, r) => acc + r.nationalDivergence, 0) / rows.length;
+    const maxRow = [...rows].sort((a, b) => b.nationalDivergence - a.nationalDivergence)[0];
+    const minRow = [...rows].sort((a, b) => a.nationalDivergence - b.nationalDivergence)[0];
+    statsEl.innerHTML = `
+      <div class="name"><span>全国平均からの乖離度</span><span>(Jensen-Shannon距離)</span></div>
+      <div>表示単位: ${getGranularityLabel()}</div>
+      <div>平均: ${avg.toFixed(3)}</div>
+      <div>最も全国平均から乖離: ${maxRow.label} (${maxRow.nationalDivergence.toFixed(3)})</div>
+      <div>最も全国平均に近い: ${minRow.label} (${minRow.nationalDivergence.toFixed(3)})</div>
     `;
     return;
   }

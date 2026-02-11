@@ -13,6 +13,7 @@ import {
   isSelectedVsTopMode,
   isRulingVsOppositionMode,
   isConcentrationMode,
+  isNationalDivergenceMode,
   isSignedDiffMode,
   isRulingRatioMode,
   isSelectedRatioMode,
@@ -95,7 +96,7 @@ export function updateLegend() {
   }
 
   const legendPalette = (() => {
-    if (isConcentrationMode()) return SHARE_COLORS;
+    if (isConcentrationMode() || isNationalDivergenceMode()) return SHARE_COLORS;
     if (!(isSignedDiffMode() || isRulingRatioMode() || isSelectedRatioMode())) return SHARE_COLORS;
     if (state.activeCrossesZero) return SELECTED_VS_TOP_DIVERGING_COLORS;
     if (state.activeMin >= 0) return SELECTED_VS_TOP_BETTER_COLORS;
@@ -108,25 +109,31 @@ export function updateLegend() {
   const ratioRight = Math.exp(state.activeMax);
   const midLabel = isConcentrationMode()
     ? (state.activeMax / 2).toFixed(3)
+    : (isNationalDivergenceMode()
+      ? (state.activeMax / 2).toFixed(3)
     : (
       (isRulingRatioMode() || isSelectedRatioMode())
         ? ratioLabel(ratioMid)
         : (isSignedDiffMode() ? ppLabel(selectedMid) : pctLabel(state.activeMax / 2))
-    );
+    ));
   const leftLabel = isConcentrationMode()
     ? "0.000"
+    : (isNationalDivergenceMode()
+      ? "0.000"
     : (
       (isRulingRatioMode() || isSelectedRatioMode())
         ? ratioLabel(ratioLeft)
         : (isSignedDiffMode() ? ppLabel(state.activeMin) : "0 %")
-    );
+    ));
   const rightLabel = isConcentrationMode()
     ? state.activeMax.toFixed(3)
+    : (isNationalDivergenceMode()
+      ? state.activeMax.toFixed(3)
     : (
       (isRulingRatioMode() || isSelectedRatioMode())
         ? ratioLabel(ratioRight)
         : (isSignedDiffMode() ? ppLabel(state.activeMax) : pctLabel(state.activeMax))
-    );
+    ));
   let semanticLeft = "";
   let semanticRight = "";
   if (isRulingVsOppositionMode()) {
@@ -180,6 +187,10 @@ export function updateLegendTitle() {
   }
   if (isConcentrationMode()) {
     legendTitleEl.textContent = "凡例（ハーフィンダール・ハーシュマン指数）";
+    return;
+  }
+  if (isNationalDivergenceMode()) {
+    legendTitleEl.textContent = "凡例（全国平均からの乖離度）";
     return;
   }
   legendTitleEl.textContent = "凡例（得票率）";

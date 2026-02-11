@@ -66,6 +66,10 @@ export function isConcentrationMode() {
   return plotModeSelect.value === "concentration";
 }
 
+export function isNationalDivergenceMode() {
+  return plotModeSelect.value === "js_divergence";
+}
+
 export function isAnyRankMode() {
   return isRankMode() || isPartyRankMode();
 }
@@ -202,6 +206,53 @@ export function getRulingOppositionDiffForFeature(feature) {
   };
 }
 
+function getNationalPartyShareMap() {
+  const totalVotes = state.parties.reduce((acc, p) => acc + (Number(p.total_votes) || 0), 0);
+  if (!Number.isFinite(totalVotes) || totalVotes <= 0) return null;
+  const shareMap = {};
+  for (const p of state.parties) {
+    const votes = Number(p.total_votes) || 0;
+    shareMap[p.code] = votes / totalVotes;
+  }
+  return shareMap;
+}
+
+function getFeaturePartyShareMap(feature) {
+  const ranked = getRankedPartiesForFeature(feature, null);
+  if (!ranked.length) return null;
+  const shareMap = {};
+  for (const p of ranked) {
+    shareMap[p.code] = p.share;
+  }
+  return shareMap;
+}
+
+function jsDivergenceBase2(featureShares, nationalShares, partyCodes) {
+  let js = 0;
+  for (const code of partyCodes) {
+    const p = featureShares[code] || 0;
+    const q = nationalShares[code] || 0;
+    const m = (p + q) / 2;
+    if (p > 0 && m > 0) {
+      js += 0.5 * p * Math.log2(p / m);
+    }
+    if (q > 0 && m > 0) {
+      js += 0.5 * q * Math.log2(q / m);
+    }
+  }
+  return js;
+}
+
+export function getNationalDivergenceForFeature(feature) {
+  const nationalShares = getNationalPartyShareMap();
+  const featureShares = getFeaturePartyShareMap(feature);
+  if (!nationalShares || !featureShares) return null;
+  const partyCodes = state.parties.map((p) => p.code);
+  const js = jsDivergenceBase2(featureShares, nationalShares, partyCodes);
+  if (!Number.isFinite(js) || js < 0) return null;
+  return Math.sqrt(js);
+}
+
 export function computeActivePartyRankMax() {
   if (!isPartyRankMode()) {
     state.activePartyRankMax = 1;
@@ -318,6 +369,16 @@ export function getFeatureRenderStats(feature) {
     };
   }
 
+  if (isNationalDivergenceMode()) {
+    const base = getFeatureStats(feature, partySelect.value);
+    const nationalDivergence = getNationalDivergenceForFeature(feature);
+    return {
+      ...base,
+      share: nationalDivergence,
+      nationalDivergence,
+    };
+  }
+
   const partyCode = partySelect.value;
   const base = getFeatureStats(feature, partyCode);
   return {
@@ -399,6 +460,18 @@ export function getRulingOppositionValuesForCurrentGranularity(metricMode) {
       }
     } else if (typeof diff.gap === "number" && !Number.isNaN(diff.gap)) {
       values.push(diff.gap);
+    }
+  }
+  return values;
+}
+
+export function getNationalDivergenceValuesForCurrentGranularity() {
+  const geo = state.geojsonByGranularity[granularitySelect.value];
+  const values = [];
+  for (const feature of geo?.features || []) {
+    const value = getNationalDivergenceForFeature(feature);
+    if (typeof value === "number" && !Number.isNaN(value)) {
+      values.push(value);
     }
   }
   return values;

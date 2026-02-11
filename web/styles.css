@@ -246,7 +246,9 @@ body {
 .stats .name {
   font-weight: 700;
   margin-bottom: 4px;
+  overflow-wrap: anywhere;
 }
+.stats .name span { display: block; }
 .map-label {
   background: transparent;
   border: 0;

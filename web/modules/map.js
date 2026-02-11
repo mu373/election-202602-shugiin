@@ -16,6 +16,7 @@ import {
   isSelectedVsTopMode,
   isRulingVsOppositionMode,
   isConcentrationMode,
+  isNationalDivergenceMode,
   isSignedDiffMode,
   isRulingRatioMode,
   isSelectedRatioMode,
@@ -67,7 +68,7 @@ export function featureStyle(feature) {
     fillColor = stats.partyCode ? partyColor(stats.partyCode) : NODATA_COLOR;
   } else if (isPartyRankMode()) {
     fillColor = getPartyRankColor(stats.rank);
-  } else if (isConcentrationMode()) {
+  } else if (isConcentrationMode() || isNationalDivergenceMode()) {
     fillColor = getColorFromPalette(stats.share, state.activeMax, SHARE_COLORS, CONCENTRATION_CONTRAST_GAMMA);
   } else if (isSignedDiffMode() || isRulingRatioMode() || isSelectedRatioMode()) {
     if (stats.share == null || Number.isNaN(stats.share)) {
@@ -99,6 +100,18 @@ export function featureStyle(feature) {
   };
 }
 
+function formatPartyVotes(share, validVotes) {
+  if (
+    typeof share !== "number" ||
+    Number.isNaN(share) ||
+    typeof validVotes !== "number" ||
+    Number.isNaN(validVotes)
+  ) {
+    return "N/A";
+  }
+  return Math.round(share * validVotes).toLocaleString();
+}
+
 function onEachFeature(feature, layer) {
   layer.on({
     mouseover: (e) => {
@@ -122,7 +135,8 @@ function onEachFeature(feature, layer) {
           ${conditionLabel ? `表示条件: ${conditionLabel}<br>` : ""}
           政党: ${stats.partyName || "N/A"}<br>
           得票率: ${pct(stats.share)}<br>
-          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          得票数: ${formatPartyVotes(stats.share, stats.validVotes)} 票<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -134,7 +148,8 @@ function onEachFeature(feature, layer) {
           政党: ${stats.partyName || "N/A"}<br>
           順位: ${stats.rank != null ? `第${stats.rank}位` : "N/A"}<br>
           得票率: ${pct(stats.share)}<br>
-          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          得票数: ${formatPartyVotes(stats.share, stats.validVotes)} 票<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -148,7 +163,7 @@ function onEachFeature(feature, layer) {
         popup = `
           <strong>${stats.label}</strong><br>
           <strong>${stats.partyName || "N/A"}</strong>と<strong>${targetLabel}</strong>の${summaryLabel}: ${diffText}<br>
-          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -163,7 +178,7 @@ function onEachFeature(feature, layer) {
         popup = `
           <strong>${stats.label}</strong><br>
           <strong>${diffLabel}</strong>: ${diffText}<br>
-          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -175,7 +190,16 @@ function onEachFeature(feature, layer) {
           実効政党数 (1/HHI): ${
             stats.effectivePartyCount == null ? "N/A" : stats.effectivePartyCount.toFixed(2)
           }<br>
-          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
+          ${allRanksHtml}
+        `;
+      } else if (isNationalDivergenceMode()) {
+        const allRanksHtml = buildPartyRankPopupRows(feature, null, null);
+        popup = `
+          <strong>${stats.label}</strong><br>
+          全国平均からの乖離度（Jensen-Shannon距離）: ${stats.nationalDivergence == null ? "N/A" : stats.nationalDivergence.toFixed(3)}<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -186,7 +210,8 @@ function onEachFeature(feature, layer) {
           <strong>${stats.label}</strong><br>
           政党: ${stats.partyName || "N/A"}<br>
           得票率: ${pct(stats.share)}<br>
-          有効投票数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          得票数: ${formatPartyVotes(stats.share, stats.validVotes)} 票<br>
+          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;

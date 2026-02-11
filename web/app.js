@@ -23,13 +23,14 @@ import {
 } from "./modules/modes.js";
 
 const MODE_DESCRIPTIONS = {
-  share: "各政党の得票率を色の濃淡で表示",
-  party_rank: "選択した政党の順位を地域ごとに色分け",
-  rank: "各地域で第N位の政党を色分け",
-  opposition_rank: "自民党を除いた第N位の政党を色分け",
-  selected_diff: "二つの政党の得票率の差・比を比較",
-  ruling_vs_opposition: "与党（自民+維新）と野党（その他）の得票率を比較",
-  concentration: "値が高いほど一党集中、低いほど多党分散",
+  share: "各政党の得票率を色の濃淡で示します",
+  party_rank: "選択した政党の順位を地域ごとに示します",
+  rank: "各地域で第N位の政党を示します",
+  opposition_rank: "自民党を除いた第N位の政党を示します",
+  selected_diff: "二つの政党の得票率の差・比を示します",
+  ruling_vs_opposition: "与党（自民+維新）と野党（その他）の得票率比較を示します",
+  concentration: "値が高いほど一党集中、低いほど多党分散を示します",
+  js_divergence: "政党投票構成の全国平均からの乖離度を示します。値が0に近いほど全国平均に近く、値が高いほど違いが大きくなります。",
 };
 
 function initShareXButton() {
@@ -71,6 +72,8 @@ function updateModeLabel() {
     const rankN = rankSelect.value || "1";
     label = "野党第" + rankN + "党";
     desc = "自民党を除いた第" + rankN + "位の政党";
+  } else if (mode === "js_divergence") {
+    label = "モード: 政党投票構成の全国平均からの乖離度";
   }
   legendModeLabel.textContent = label;
   legendModeDesc.textContent = desc;
@@ -116,6 +119,20 @@ function recolor() {
       state.activeCrossesZero = true;
     }
   } else if (isConcentrationMode()) {
+    state.activeMin = 0;
+    state.activeCrossesZero = false;
+    const geo = state.geojsonByGranularity[granularitySelect.value];
+    const values = [];
+    for (const feature of geo?.features || []) {
+      const stats = getFeatureRenderStats(feature);
+      if (typeof stats.share === "number" && !Number.isNaN(stats.share)) {
+        values.push(stats.share);
+      }
+    }
+    values.sort((a, b) => a - b);
+    const q95 = quantile(values, 0.95);
+    state.activeMax = q95 > 0 ? q95 : 1;
+  } else if (plotModeSelect.value === "js_divergence") {
     state.activeMin = 0;
     state.activeCrossesZero = false;
     const geo = state.geojsonByGranularity[granularitySelect.value];
