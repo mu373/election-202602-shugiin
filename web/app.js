@@ -29,7 +29,7 @@ const DATA_FILE_NAMES = [
   "election_data.json",
   "parties.json",
 ];
-const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/mu373/election-202602-shugiin/main/web/data";
+const GITHUB_RAW_BASE = "https://raw.githubusercontent.com/mu373/election-202602-shugiin/main/web/public/data";
 const LOCAL_DATA_BASE = "./data";
 
 function getConfiguredDataSourceMode() {
