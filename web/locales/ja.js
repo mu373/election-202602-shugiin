@@ -76,10 +76,10 @@ const ja = {
   "modeLabel.rank.modeHelp": "各地域で得票率第N位の政党を色分け表示します。",
   "modeLabel.rank.statsTitle": (ctx) => `得票率第${ctx.rankN}位の政党`,
 
-  "modeLabel.opposition_rank.description": (ctx) => `自民党を除いた第${ctx.rankN}位の政党`,
+  "modeLabel.opposition_rank.description": (ctx) => `与党（自民・維新）を除いた第${ctx.rankN}位の政党`,
   "modeLabel.opposition_rank.legendHeader": (ctx) => `野党第${ctx.rankN}党`,
   "modeLabel.opposition_rank.legendTitle": "凡例（政党）",
-  "modeLabel.opposition_rank.modeHelp": "各地域で自民党を除いた得票率第N位の政党を色分け表示します。",
+  "modeLabel.opposition_rank.modeHelp": "各地域で与党（自民・維新）を除いた得票率第N位の政党を色分け表示します。",
   "modeLabel.opposition_rank.statsTitle": (ctx) => `野党第${ctx.rankN}党`,
 
   "modeLabel.selected_diff.description.diff": "二つの政党の得票率の差を表示",

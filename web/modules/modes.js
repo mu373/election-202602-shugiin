@@ -97,8 +97,8 @@ export function getCompareTargetPartyCode() {
   return state.parties.some((p) => p.code === code) ? code : null;
 }
 
-export function getExcludedPartyCodeForMode() {
-  return plotModeSelect.value === "opposition_rank" ? RULING_PARTY_CODE : null;
+export function getExcludedPartyCodesForMode() {
+  return plotModeSelect.value === "opposition_rank" ? RULING_BLOC_CODES : null;
 }
 
 export function getPartyRankForFeature(feature, partyCode) {
@@ -305,7 +305,7 @@ export function getPartyRankColor(rank) {
 export function getFeatureRenderStats(feature) {
   if (isRankMode()) {
     const rank = Number.parseInt(rankSelect.value, 10) || 1;
-    const ranked = getRankedPartiesForFeature(feature, getExcludedPartyCodeForMode());
+    const ranked = getRankedPartiesForFeature(feature, getExcludedPartyCodesForMode());
     const chosen = ranked[rank - 1] || null;
     const base = getFeatureStats(feature, partySelect.value);
     const partyCode = chosen ? chosen.code : null;

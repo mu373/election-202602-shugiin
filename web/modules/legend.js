@@ -18,7 +18,7 @@ import {
   isSignedDiffMode,
   isRulingRatioMode,
   isSelectedRatioMode,
-  getExcludedPartyCodeForMode,
+  getExcludedPartyCodesForMode,
   getPartyRankColor,
   getFeatureRenderStats,
 } from "./modes.js";
@@ -75,7 +75,7 @@ export function updateLegend() {
     const counts = {};
     const geo = state.geojsonByGranularity[granularitySelect.value];
     for (const feature of geo?.features || []) {
-      const ranked = getRankedPartiesForFeature(feature, getExcludedPartyCodeForMode());
+      const ranked = getRankedPartiesForFeature(feature, getExcludedPartyCodesForMode());
       const p = ranked[rank - 1];
       if (p) counts[p.code] = (counts[p.code] || 0) + 1;
     }

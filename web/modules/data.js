@@ -97,7 +97,10 @@ export function getFeatureStats(feature, partyCode) {
   };
 }
 
-export function getRankedPartiesForFeature(feature, excludedPartyCode = null) {
+export function getRankedPartiesForFeature(feature, excludedPartyCodes = null) {
+  const isExcluded = excludedPartyCodes instanceof Set
+    ? (code) => excludedPartyCodes.has(code)
+    : (code) => code === excludedPartyCodes;
   const granularity = granularitySelect.value;
   if (granularity === "muni") {
     const muniCode = String(feature.properties.muni_code || "").padStart(5, "0");
@@ -105,7 +108,7 @@ export function getRankedPartiesForFeature(feature, excludedPartyCode = null) {
     return Object.entries(rec.parties || {})
       .filter(([, share]) => typeof share === "number" && !Number.isNaN(share))
       .map(([code, share]) => ({ code, share, votes: (rec.valid_votes || 0) * share }))
-      .filter((p) => p.code !== excludedPartyCode)
+      .filter((p) => !isExcluded(p.code))
       .sort((a, b) => b.share - a.share);
   }
 
@@ -116,7 +119,7 @@ export function getRankedPartiesForFeature(feature, excludedPartyCode = null) {
   return Object.entries(agg.party_votes || {})
     .filter(([, votes]) => typeof votes === "number" && !Number.isNaN(votes) && votes > 0)
     .map(([code, votes]) => ({ code, votes, share: votes / agg.valid_votes }))
-    .filter((p) => p.code !== excludedPartyCode)
+    .filter((p) => !isExcluded(p.code))
     .sort((a, b) => b.share - a.share);
 }
 
