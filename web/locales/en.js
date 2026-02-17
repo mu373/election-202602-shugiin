@@ -1,3 +1,9 @@
+function ord(n) {
+  const s = ["th", "st", "nd", "rd"];
+  const v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
 const en = {
   "html.pageTitle": "House of Representatives Election 2026 — Proportional Vote Map",
   "html.shareXAria": "Share on X",
@@ -57,8 +63,8 @@ const en = {
   "compareTarget.parties": "Parties",
   "compareTarget.default": "Target",
 
-  "rank.label": (n) => `#${n}`,
-  "rank.labelAndBelow": (n) => `#${n} and below`,
+  "rank.label": (n) => ord(n),
+  "rank.labelAndBelow": (n) => `${ord(n)} and below`,
 
   "modeLabel.share.description": "Vote share shown as color intensity.",
   "modeLabel.share.legendHeader": (ctx) => `${ctx.modeText}: ${ctx.partyShort}`,
@@ -67,20 +73,20 @@ const en = {
   "modeLabel.party_rank.description": "",
   "modeLabel.party_rank.legendHeader": (ctx) => `${ctx.partyShort} — Ranking by Area`,
   "modeLabel.party_rank.legendTitle": "Legend (Rank)",
-  "modeLabel.party_rank.modeHelp": "Rank of the selected party (#1, #2, …) in each area.",
+  "modeLabel.party_rank.modeHelp": "Rank of the selected party (1st, 2nd, …) in each area.",
   "modeLabel.party_rank.statsTitle": (ctx) => `${ctx.partyShort} — Rank Distribution`,
 
   "modeLabel.rank.description": "",
-  "modeLabel.rank.legendHeader": (ctx) => `#${ctx.rankN} Party by Vote Share`,
+  "modeLabel.rank.legendHeader": (ctx) => `${ord(ctx.rankN)} Party by Vote Share`,
   "modeLabel.rank.legendTitle": "Legend (Party)",
-  "modeLabel.rank.modeHelp": "Which party placed #N in each area by vote share.",
-  "modeLabel.rank.statsTitle": (ctx) => `#${ctx.rankN} Party by Vote Share`,
+  "modeLabel.rank.modeHelp": "Which party placed Nth in each area by vote share.",
+  "modeLabel.rank.statsTitle": (ctx) => `${ord(ctx.rankN)} Party by Vote Share`,
 
-  "modeLabel.opposition_rank.description": (ctx) => `#${ctx.rankN} party excluding LDP`,
-  "modeLabel.opposition_rank.legendHeader": (ctx) => `Opposition #${ctx.rankN}`,
+  "modeLabel.opposition_rank.description": (ctx) => `${ord(ctx.rankN)} party excluding LDP`,
+  "modeLabel.opposition_rank.legendHeader": (ctx) => `Opposition ${ord(ctx.rankN)}`,
   "modeLabel.opposition_rank.legendTitle": "Legend (Party)",
-  "modeLabel.opposition_rank.modeHelp": "Which party placed #N in each area, excluding LDP.",
-  "modeLabel.opposition_rank.statsTitle": (ctx) => `Opposition #${ctx.rankN}`,
+  "modeLabel.opposition_rank.modeHelp": "Which party placed Nth in each area, excluding LDP.",
+  "modeLabel.opposition_rank.statsTitle": (ctx) => `Opposition ${ord(ctx.rankN)}`,
 
   "modeLabel.selected_diff.description.diff": "Vote share difference between two parties.",
   "modeLabel.selected_diff.description.ratio": "Vote share ratio between two parties.",
@@ -108,9 +114,9 @@ const en = {
   "modeLabel.winner_margin.description": "Smaller values = closer races; larger values = dominant winner.",
   "modeLabel.winner_margin.legendHeader": "Margin of Victory",
   "modeLabel.winner_margin.legendTitle": "Legend (Top-2 Vote Share Gap)",
-  "modeLabel.winner_margin.modeHelp": "Gap between the #1 and #2 parties by vote share. Smaller values mean tighter races.",
+  "modeLabel.winner_margin.modeHelp": "Gap between the 1st and 2nd parties by vote share. Smaller values mean tighter races.",
   "modeLabel.winner_margin.statsTitle": "Margin of Victory",
-  "modeLabel.winner_margin.popupMetricLabel": "Vote share gap (#1 − #2)",
+  "modeLabel.winner_margin.popupMetricLabel": "Vote share gap (1st − 2nd)",
 
   "modeLabel.concentration.description": "Higher = single-party dominance; lower = multi-party competition.",
   "modeLabel.concentration.legendHeader": "Herfindahl–Hirschman Index (HHI)",
@@ -127,7 +133,7 @@ const en = {
   "modeLabel.js_divergence.popupMetricLabel": "Nat'l avg. deviation (Jensen–Shannon distance)",
 
   "stats.displayUnit": "Scale",
-  "stats.firstPlaceCount": "Areas ranked #1",
+  "stats.firstPlaceCount": "Areas ranked 1st",
   "stats.mostFrequentRank": "Most common rank",
   "stats.most": "Most",
   "stats.least": "Fewest",
@@ -158,14 +164,14 @@ const en = {
   "popup.validVotes": "Total valid votes",
   "popup.displayCondition": "Filter",
   "popup.effectivePartyCount": "Effective parties (1/HHI)",
-  "popup.firstPlace": "#1",
-  "popup.secondPlace": "#2",
+  "popup.firstPlace": "1st",
+  "popup.secondPlace": "2nd",
   "popup.summary.diff": "Diff.",
   "popup.summary.ratio": "Ratio",
   "popup.selectedDiffSummary": (partyName, targetLabel, summaryLabel, diffText) => `${summaryLabel} between <strong>${partyName}</strong> and <strong>${targetLabel}</strong>: ${diffText}`,
-  "popup.oppositionRankN": (n) => `Opposition #${n}`,
+  "popup.oppositionRankN": (n) => `Opposition ${ord(n)}`,
   "popup.rankDataNA": "Rank data: N/A",
-  "popup.rankLine": (rank, name, share) => `#${rank} ${name}: ${share}`,
+  "popup.rankLine": (rank, name, share) => `${ord(rank)}: ${name} (${share})`,
 
   "legend.noData": "No data",
   "legend.competitive": "Even",

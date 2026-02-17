@@ -39,7 +39,7 @@ import {
   SELECTED_DIFF_DEFAULT_BASE,
   SELECTED_DIFF_DEFAULT_TARGET,
 } from "./constants.js";
-import { t } from "./i18n.js";
+import { t, getLocale } from "./i18n.js";
 
 export function populatePartySelect() {
   partySelect.innerHTML = "";
@@ -271,6 +271,11 @@ export function writeStateToUrl() {
     url.searchParams.set("metric", selectedMetricSelect.value);
   } else if (mode === "ruling_vs_opposition") {
     url.searchParams.set("metric", rulingMetricSelect.value);
+  }
+
+  url.searchParams.delete("lang");
+  if (getLocale() !== "ja") {
+    url.searchParams.set("lang", getLocale());
   }
 
   window.history.replaceState({}, "", url);
