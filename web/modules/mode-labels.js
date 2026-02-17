@@ -3,16 +3,19 @@ import {
   plotModeSelect,
   partySelect,
   compareTargetSelect,
-  selectedMetricSelect,
-  rulingMetricSelect,
   rankSelect,
 } from "./dom.js";
 import { getSelectedMetricMode, getRulingMetricMode } from "./modes.js";
+import { t, getPartyShortName } from "./i18n.js";
 
 export function buildLabelContext() {
   const mode = plotModeSelect.value;
-  const partyName = state.partyNameByCode[partySelect.value] || "";
-  const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || "比較対象";
+  const partyCode = partySelect.value;
+  const partyName = state.partyNameByCode[partyCode] || "";
+  const partyShort = getPartyShortName(partyCode) || partyName;
+  const targetName = compareTargetSelect.options[compareTargetSelect.selectedIndex]?.textContent || t("compareTarget.default");
+  const targetCode = compareTargetSelect.value;
+  const targetShort = targetCode === "top" ? t("compareTarget.top") : (getPartyShortName(targetCode) || targetName);
   const metricMode = mode === "selected_diff"
     ? getSelectedMetricMode()
     : mode === "ruling_vs_opposition"
@@ -20,7 +23,7 @@ export function buildLabelContext() {
       : null;
   const rankN = rankSelect.value || "1";
   const modeText = plotModeSelect.options[plotModeSelect.selectedIndex]?.textContent || "";
-  return { mode, partyName, targetName, metricMode, rankN, modeText };
+  return { mode, partyName, partyShort, targetName, targetShort, metricMode, rankN, modeText };
 }
 
 export function resolveLabel(labelOrFn, ctx) {
@@ -30,98 +33,100 @@ export function resolveLabel(labelOrFn, ctx) {
 
 export const MODE_LABELS = {
   share: {
-    description: "各政党の得票率を色の濃淡で示します",
-    legendHeader: (ctx) => `${ctx.modeText}: ${ctx.partyName}`,
-    legendTitle: () => "凡例（得票率）",
+    description: () => t("modeLabel.share.description"),
+    legendHeader: (ctx) => t("modeLabel.share.legendHeader", ctx),
+    legendTitle: () => t("modeLabel.share.legendTitle"),
     modeHelp: null,
     statsTitle: null,
     popupMetricLabel: null,
   },
   party_rank: {
-    description: "",
-    legendHeader: (ctx) => `${ctx.partyName}の地域別順位`,
-    legendTitle: () => "凡例（順位）",
-    modeHelp: () => "選択した政党の順位（第1位, 第2位, ...）を地域ごとに色分け表示します。",
+    description: () => t("modeLabel.party_rank.description"),
+    legendHeader: (ctx) => t("modeLabel.party_rank.legendHeader", ctx),
+    legendTitle: () => t("modeLabel.party_rank.legendTitle"),
+    modeHelp: () => t("modeLabel.party_rank.modeHelp"),
     modeHelpIsHtml: false,
-    statsTitle: (ctx) => `${ctx.partyName} の順位分布`,
+    statsTitle: (ctx) => t("modeLabel.party_rank.statsTitle", ctx),
     popupMetricLabel: null,
   },
   rank: {
-    description: "",
-    legendHeader: (ctx) => `得票率第${ctx.rankN}位の政党`,
-    legendTitle: () => "凡例（政党）",
-    modeHelp: () => "各地域で得票率第N位の政党を色分け表示します。",
+    description: () => t("modeLabel.rank.description"),
+    legendHeader: (ctx) => t("modeLabel.rank.legendHeader", ctx),
+    legendTitle: () => t("modeLabel.rank.legendTitle"),
+    modeHelp: () => t("modeLabel.rank.modeHelp"),
     modeHelpIsHtml: false,
-    statsTitle: (ctx) => `得票率第${ctx.rankN}位の政党`,
+    statsTitle: (ctx) => t("modeLabel.rank.statsTitle", ctx),
     popupMetricLabel: null,
   },
   opposition_rank: {
-    description: (ctx) => `自民党を除いた第${ctx.rankN}位の政党`,
-    legendHeader: (ctx) => `野党第${ctx.rankN}党`,
-    legendTitle: () => "凡例（政党）",
-    modeHelp: () => "各地域で自民党を除いた得票率第N位の政党を色分け表示します。",
+    description: (ctx) => t("modeLabel.opposition_rank.description", ctx),
+    legendHeader: (ctx) => t("modeLabel.opposition_rank.legendHeader", ctx),
+    legendTitle: () => t("modeLabel.opposition_rank.legendTitle"),
+    modeHelp: () => t("modeLabel.opposition_rank.modeHelp"),
     modeHelpIsHtml: false,
-    statsTitle: (ctx) => `野党第${ctx.rankN}党`,
+    statsTitle: (ctx) => t("modeLabel.opposition_rank.statsTitle", ctx),
     popupMetricLabel: null,
   },
   selected_diff: {
     description: (ctx) => ctx.metricMode === "ratio"
-      ? "二つの政党の得票率の比を表示"
-      : "二つの政党の得票率の差を表示",
-    legendHeader: (ctx) => `比較: ${ctx.partyName} vs ${ctx.targetName}`,
+      ? t("modeLabel.selected_diff.description.ratio")
+      : t("modeLabel.selected_diff.description.diff"),
+    legendHeader: (ctx) => t("modeLabel.selected_diff.legendHeader", ctx),
     legendTitle: (ctx) => ctx.metricMode === "ratio"
-      ? `凡例（比: ${ctx.partyName} / ${ctx.targetName}）`
-      : `凡例（差: ${ctx.partyName} − ${ctx.targetName}）`,
-    modeHelp: () => "二つの政党（基準政党と比較対象）の比較を表示します。",
+      ? t("modeLabel.selected_diff.legendTitle.ratio", ctx)
+      : t("modeLabel.selected_diff.legendTitle.diff", ctx),
+    modeHelp: () => t("modeLabel.selected_diff.modeHelp"),
     modeHelpIsHtml: false,
-    semanticLeft: (ctx) => `${ctx.targetName}が優勢`,
-    semanticRight: (ctx) => `${ctx.partyName}が優勢`,
-    statsTitle: (ctx) => `${ctx.partyName}と${ctx.targetName}${ctx.metricMode === "ratio" ? "の比" : "の得票率差"}`,
+    semanticLeft: (ctx) => t("modeLabel.selected_diff.semanticLeft", ctx),
+    semanticRight: (ctx) => t("modeLabel.selected_diff.semanticRight", ctx),
+    statsTitle: (ctx) => ctx.metricMode === "ratio"
+      ? t("modeLabel.selected_diff.statsTitle.ratio", ctx)
+      : t("modeLabel.selected_diff.statsTitle.diff", ctx),
     popupMetricLabel: null,
   },
   ruling_vs_opposition: {
-    description: "与党（自民+維新）と野党（その他）の得票率比較を示します",
-    legendHeader: () => "与党 vs 野党",
+    description: () => t("modeLabel.ruling_vs_opposition.description"),
+    legendHeader: () => t("modeLabel.ruling_vs_opposition.legendHeader"),
     legendTitle: (ctx) => ctx.metricMode === "ratio"
-      ? "凡例（比: 与党/野党）"
-      : "凡例（差分: 与党 - 野党）",
-    modeHelp: () => "与党（自民・維新）と野党（それ以外）の比較を表示します。",
+      ? t("modeLabel.ruling_vs_opposition.legendTitle.ratio")
+      : t("modeLabel.ruling_vs_opposition.legendTitle.diff"),
+    modeHelp: () => t("modeLabel.ruling_vs_opposition.modeHelp"),
     modeHelpIsHtml: false,
-    semanticLeft: () => "野党が優勢",
-    semanticRight: () => "与党が優勢",
+    semanticLeft: () => t("modeLabel.ruling_vs_opposition.semanticLeft"),
+    semanticRight: () => t("modeLabel.ruling_vs_opposition.semanticRight"),
     statsTitle: (ctx) => ctx.metricMode === "ratio"
-      ? "与党（自民・維新）/野党（それ以外）"
-      : "与党と野党の差",
+      ? t("modeLabel.ruling_vs_opposition.statsTitle.ratio")
+      : t("modeLabel.ruling_vs_opposition.statsTitle.diff"),
     popupMetricLabel: (ctx) => ctx.metricMode === "ratio"
-      ? "与党（自民・維新）/野党（それ以外）"
-      : "与党と野党の差",
+      ? t("modeLabel.ruling_vs_opposition.popupMetricLabel.ratio")
+      : t("modeLabel.ruling_vs_opposition.popupMetricLabel.diff"),
   },
   winner_margin: {
-    description: "値が小さいほど接戦、値が大きいほど1位が優勢です。",
-    legendHeader: () => "上位2党の得票率差（接戦度）",
-    legendTitle: () => "凡例（上位2党の得票率差）",
-    modeHelp: () => "上位2党の得票率差（1位−2位）を表示します。値が小さいほど接戦、値が大きいほど1位が優勢です。",
+    description: () => t("modeLabel.winner_margin.description"),
+    legendHeader: () => t("modeLabel.winner_margin.legendHeader"),
+    legendTitle: () => t("modeLabel.winner_margin.legendTitle"),
+    modeHelp: () => t("modeLabel.winner_margin.modeHelp"),
     modeHelpIsHtml: false,
-    statsTitle: () => "上位2党の得票率差（接戦度）",
-    popupMetricLabel: () => "上位2党の得票率差（1位−2位）",
+    statsTitle: () => t("modeLabel.winner_margin.statsTitle"),
+    popupMetricLabel: () => t("modeLabel.winner_margin.popupMetricLabel"),
   },
   concentration: {
-    description: "値が高いほど一党集中、低いほど多党分散を示します",
-    legendHeader: () => "ハーフィンダール・ハーシュマン指数 (HHI)",
-    legendTitle: () => "凡例（ハーフィンダール・ハーシュマン指数）",
-    modeHelp: () => `<a href="https://ja.wikipedia.org/wiki/%E3%83%8F%E3%83%BC%E3%83%95%E3%82%A3%E3%83%B3%E3%83%80%E3%83%BC%E3%83%AB%E3%83%BB%E3%83%8F%E3%83%BC%E3%82%B7%E3%83%A5%E3%83%9E%E3%83%B3%E3%83%BB%E3%82%A4%E3%83%B3%E3%83%87%E3%83%83%E3%82%AF%E3%82%B9" target="_blank" rel="noopener noreferrer">ハーフィンダール・ハーシュマン指数 (HHI)</a> を表示します。値が高いほど特定政党への集中が強いことを示します。`,
+    description: () => t("modeLabel.concentration.description"),
+    legendHeader: () => t("modeLabel.concentration.legendHeader"),
+    legendTitle: () => t("modeLabel.concentration.legendTitle"),
+    modeHelp: () => t("modeLabel.concentration.modeHelp"),
     modeHelpIsHtml: true,
-    statsTitle: () => "ハーフィンダール・ハーシュマン指数 (HHI)",
-    popupMetricLabel: () => "ハーフィンダール・ハーシュマン指数 (HHI)",
+    statsTitle: () => t("modeLabel.concentration.statsTitle"),
+    popupMetricLabel: () => t("modeLabel.concentration.popupMetricLabel"),
   },
   js_divergence: {
-    description: "政党投票構成の全国平均からの乖離度を示します。値が0に近いほど全国平均に近く、値が高いほど違いが大きくなります。",
-    legendHeader: () => "政党投票構成の全国平均からの乖離度",
-    legendTitle: () => "凡例（全国平均からの乖離度）",
-    modeHelp: () => `政党投票構成の全国平均からの乖離度を <a href="https://en.wikipedia.org/wiki/Jensen%E2%80%93Shannon_divergence" target="_blank" rel="noopener noreferrer">Jensen-Shannon距離</a> で表示します。値が0に近いほど全国平均に近く、値が高いほど平均からの乖離が大きいことを示します。`,
+    description: () => t("modeLabel.js_divergence.description"),
+    legendHeader: () => t("modeLabel.js_divergence.legendHeader"),
+    legendTitle: () => t("modeLabel.js_divergence.legendTitle"),
+    modeHelp: () => t("modeLabel.js_divergence.modeHelp"),
     modeHelpIsHtml: true,
-    statsTitle: () => `<span>全国平均からの乖離度</span><span>(Jensen-Shannon距離)</span>`,
+    statsTitle: () => t("modeLabel.js_divergence.statsTitle"),
     statsTitleIsHtml: true,
-    popupMetricLabel: () => "全国平均からの乖離度（Jensen-Shannon距離）",
+    popupMetricLabel: () => t("modeLabel.js_divergence.popupMetricLabel"),
   },
 };

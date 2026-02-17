@@ -25,6 +25,7 @@ import {
   getAggregateShare,
 } from "./data.js";
 import { pct } from "./format.js";
+import { t } from "./i18n.js";
 
 export function isRankMode() {
   return plotModeSelect.value === "rank" || plotModeSelect.value === "opposition_rank";
@@ -87,7 +88,7 @@ export function getCompareTargetLabel() {
     const code = compareTargetSelect.value;
     return state.partyNameByCode[code] || code;
   }
-  return "第1党";
+  return t("compareTarget.top");
 }
 
 export function getCompareTargetPartyCode() {
@@ -458,13 +459,18 @@ export function computeActiveScale() {
 
 export function buildPartyRankPopupRows(feature, selectedCode, compareTargetCode = null) {
   const ranked = getRankedPartiesForFeature(feature, null);
-  if (!ranked.length) return "順位データ: N/A";
+  if (!ranked.length) return t("popup.rankDataNA");
   return ranked
     .map((p, idx) => {
       const isTopTwo = isWinnerMarginMode() && idx < 2;
       const isSelected = p.code === selectedCode;
       const isCompareTarget = compareTargetCode && p.code === compareTargetCode;
-      const label = `第${idx + 1}位 ${state.partyNameByCode[p.code] || p.code}: ${pct(p.share)}`;
+      const label = t(
+        "popup.rankLine",
+        idx + 1,
+        state.partyNameByCode[p.code] || p.code,
+        pct(p.share),
+      );
       return (isTopTwo || isSelected || isCompareTarget) ? `<strong>${label}</strong>` : label;
     })
     .join("<br>");

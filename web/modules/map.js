@@ -27,6 +27,7 @@ import {
 } from "./modes.js";
 import { pct, ppLabel, ppSignedLabel, ratioLabel } from "./format.js";
 import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
+import { t, getMuniShort, getPrefName, getBlockName } from "./i18n.js";
 
 // Leaflet globals — L is loaded as a regular <script> before this module.
 export let leafletMap = null;
@@ -114,6 +115,10 @@ function formatPartyVotes(share, validVotes) {
   return Math.round(share * validVotes).toLocaleString();
 }
 
+function formatValidVotes(validVotes) {
+  return (validVotes ?? "N/A").toLocaleString?.() || validVotes || "N/A";
+}
+
 function onEachFeature(feature, layer) {
   layer.on({
     mouseover: (e) => {
@@ -128,17 +133,17 @@ function onEachFeature(feature, layer) {
       let popup;
       if (isRankMode()) {
         const isOppositionRankMode = plotModeSelect.value === "opposition_rank";
-        const rankLabel = stats.actualRank != null ? `第${stats.actualRank}位` : "N/A";
-        const conditionLabel = isOppositionRankMode ? `野党第${stats.rank}党` : null;
+        const rankLabel = stats.actualRank != null ? t("rank.label", stats.actualRank) : "N/A";
+        const conditionLabel = isOppositionRankMode ? t("popup.oppositionRankN", stats.rank) : null;
         const allRanksHtml = buildPartyRankPopupRows(feature, stats.partyCode);
         popup = `
           <strong>${stats.label}</strong><br>
-          順位: ${rankLabel}<br>
-          ${conditionLabel ? `表示条件: ${conditionLabel}<br>` : ""}
-          政党: ${stats.partyName || "N/A"}<br>
-          得票率: ${pct(stats.share)}<br>
-          得票数: ${formatPartyVotes(stats.share, stats.validVotes)} 票<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.rank")}: ${rankLabel}<br>
+          ${conditionLabel ? `${t("popup.displayCondition")}: ${conditionLabel}<br>` : ""}
+          ${t("popup.party")}: ${stats.partyName || "N/A"}<br>
+          ${t("popup.voteShare")}: ${pct(stats.share)}<br>
+          ${t("popup.votes")}: ${formatPartyVotes(stats.share, stats.validVotes)} ${t("popup.voteUnit")}<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -147,25 +152,25 @@ function onEachFeature(feature, layer) {
         const allRanksHtml = buildPartyRankPopupRows(feature, selectedCode);
         popup = `
           <strong>${stats.label}</strong><br>
-          政党: ${stats.partyName || "N/A"}<br>
-          順位: ${stats.rank != null ? `第${stats.rank}位` : "N/A"}<br>
-          得票率: ${pct(stats.share)}<br>
-          得票数: ${formatPartyVotes(stats.share, stats.validVotes)} 票<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.party")}: ${stats.partyName || "N/A"}<br>
+          ${t("popup.rank")}: ${stats.rank != null ? t("rank.label", stats.rank) : "N/A"}<br>
+          ${t("popup.voteShare")}: ${pct(stats.share)}<br>
+          ${t("popup.votes")}: ${formatPartyVotes(stats.share, stats.validVotes)} ${t("popup.voteUnit")}<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
       } else if (isSelectedVsTopMode()) {
-        const targetLabel = stats.compareTargetLabel || "第1党";
+        const targetLabel = stats.compareTargetLabel || t("compareTarget.top");
         const diffText = stats.metricMode === "ratio"
           ? ratioLabel(stats.ratio)
           : ppSignedLabel(stats.gap);
-        const summaryLabel = stats.metricMode === "ratio" ? "比" : "差";
+        const summaryLabel = stats.metricMode === "ratio" ? t("popup.summary.ratio") : t("popup.summary.diff");
         const allRanksHtml = buildPartyRankPopupRows(feature, partySelect.value, stats.targetPartyCode);
         popup = `
           <strong>${stats.label}</strong><br>
-          <strong>${stats.partyName || "N/A"}</strong>と<strong>${targetLabel}</strong>の${summaryLabel}: ${diffText}<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.selectedDiffSummary", stats.partyName || "N/A", targetLabel, summaryLabel, diffText)}<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -180,7 +185,7 @@ function onEachFeature(feature, layer) {
         popup = `
           <strong>${stats.label}</strong><br>
           <strong>${diffLabel}</strong>: ${diffText}<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -191,10 +196,10 @@ function onEachFeature(feature, layer) {
         popup = `
           <strong>${stats.label}</strong><br>
           ${resolveLabel(config.popupMetricLabel, ctx)}: ${stats.concentration == null ? "N/A" : stats.concentration.toFixed(3)}<br>
-          実効政党数 (1/HHI): ${
+          ${t("popup.effectivePartyCount")}: ${
             stats.effectivePartyCount == null ? "N/A" : stats.effectivePartyCount.toFixed(2)
           }<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -205,9 +210,9 @@ function onEachFeature(feature, layer) {
         popup = `
           <strong>${stats.label}</strong><br>
           ${resolveLabel(config.popupMetricLabel, ctx)}: ${stats.margin == null ? "N/A" : ppLabel(stats.margin)}<br>
-          1位: ${stats.winnerPartyName || "N/A"}（${pct(stats.winnerShare)}）<br>
-          2位: ${stats.runnerUpPartyName || "N/A"}（${pct(stats.runnerUpShare)}）<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.firstPlace")}: ${stats.winnerPartyName || "N/A"} (${pct(stats.winnerShare)})<br>
+          ${t("popup.secondPlace")}: ${stats.runnerUpPartyName || "N/A"} (${pct(stats.runnerUpShare)})<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -218,7 +223,7 @@ function onEachFeature(feature, layer) {
         popup = `
           <strong>${stats.label}</strong><br>
           ${resolveLabel(config.popupMetricLabel, ctx)}: ${stats.nationalDivergence == null ? "N/A" : stats.nationalDivergence.toFixed(3)}<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -227,10 +232,10 @@ function onEachFeature(feature, layer) {
         const allRanksHtml = buildPartyRankPopupRows(feature, selectedCode);
         popup = `
           <strong>${stats.label}</strong><br>
-          政党: ${stats.partyName || "N/A"}<br>
-          得票率: ${pct(stats.share)}<br>
-          得票数: ${formatPartyVotes(stats.share, stats.validVotes)} 票<br>
-          地域の有効投票総数: ${(stats.validVotes ?? "N/A").toLocaleString?.() || stats.validVotes || "N/A"}<br>
+          ${t("popup.party")}: ${stats.partyName || "N/A"}<br>
+          ${t("popup.voteShare")}: ${pct(stats.share)}<br>
+          ${t("popup.votes")}: ${formatPartyVotes(stats.share, stats.validVotes)} ${t("popup.voteUnit")}<br>
+          ${t("popup.validVotes")}: ${formatValidVotes(stats.validVotes)}<br>
           <hr style="border:none;border-top:1px solid #d1d5db;margin:6px 0;">
           ${allRanksHtml}
         `;
@@ -282,13 +287,10 @@ function getFeatureLabelText(feature) {
   const granularity = granularitySelect.value;
   if (granularity === "muni") {
     const muniCode = String(feature.properties.muni_code || "").padStart(5, "0");
-    const rec = state.electionData[muniCode] || {};
-    return `${rec.name || feature.properties.muni_name || ""}`.trim();
+    return getMuniShort(muniCode);
   }
-  if (granularity === "pref") {
-    return feature.properties.pref_name || "";
-  }
-  return feature.properties.block_name || "";
+  if (granularity === "pref") return getPrefName(feature.properties.pref_code);
+  return getBlockName(feature.properties.block_id);
 }
 
 function ringAreaCoords(ring) {
