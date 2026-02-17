@@ -1,5 +1,5 @@
 import { state } from "./state.js";
-import { granularitySelect, plotModeSelect, partySelect, rankSelect, statsEl, statsMirrorEl } from "./dom.js";
+import { granularitySelect, partySelect, rankSelect, statsEl, statsMirrorEl } from "./dom.js";
 import {
   isPartyRankMode,
   isRankMode,
@@ -8,7 +8,6 @@ import {
   isConcentrationMode,
   isWinnerMarginMode,
   isNationalDivergenceMode,
-  getCompareTargetLabel,
   getSelectedMetricMode,
   getRulingMetricMode,
   getExcludedPartyCodeForMode,
@@ -18,11 +17,14 @@ import {
 import { getRankedPartiesForFeature } from "./data.js";
 import { pct, ppLabel, ppSignedLabel, ratioLabel } from "./format.js";
 import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
+import { t } from "./i18n.js";
 
 function getGranularityLabel() {
-  if (granularitySelect.value === "muni") return "市区町村";
-  if (granularitySelect.value === "pref") return "都道府県";
-  return "ブロック";
+  return t(`granularity.${granularitySelect.value}`);
+}
+
+function noDataHtml(config, ctx) {
+  return `<div class=\"name\">${resolveLabel(config.statsTitle, ctx)}</div><div>${t("stats.noData")}</div>`;
 }
 
 export function updateStats() {
@@ -35,7 +37,6 @@ function updateStatsContent() {
     const ctx = buildLabelContext();
     const config = MODE_LABELS[ctx.mode];
     const selectedCode = partySelect.value;
-    const partyName = state.partyNameByCode[selectedCode] || selectedCode;
     const counts = {};
     const geo = state.geojsonByGranularity[granularitySelect.value];
     for (const feature of geo?.features || []) {
@@ -46,9 +47,9 @@ function updateStatsContent() {
     const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
     statsEl.innerHTML = `
       <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
-      <div>表示単位: ${getGranularityLabel()}</div>
-      <div>第1位の件数: ${firstPlaceCount.toLocaleString()}</div>
-      <div>最頻順位: ${top ? `第${top[0]}位` : "N/A"} (${top ? top[1].toLocaleString() : 0})</div>
+      <div>${t("stats.displayUnit")}: ${getGranularityLabel()}</div>
+      <div>${t("stats.firstPlaceCount")}: ${firstPlaceCount.toLocaleString()}</div>
+      <div>${t("stats.mostFrequentRank")}: ${top ? `${t("rank.label", top[0])}` : "N/A"} (${top ? top[1].toLocaleString() : 0})</div>
     `;
     return;
   }
@@ -69,9 +70,9 @@ function updateStatsContent() {
     const bottom = sorted[sorted.length - 1];
     statsEl.innerHTML = `
       <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
-      <div>表示単位: ${getGranularityLabel()}</div>
-      <div>最多: ${top ? `${state.partyNameByCode[top[0]] || top[0]} (${top[1].toLocaleString()})` : "N/A"}</div>
-      <div>最少: ${bottom ? `${state.partyNameByCode[bottom[0]] || bottom[0]} (${bottom[1].toLocaleString()})` : "N/A"}</div>
+      <div>${t("stats.displayUnit")}: ${getGranularityLabel()}</div>
+      <div>${t("stats.most")}: ${top ? `${state.partyNameByCode[top[0]] || top[0]} (${top[1].toLocaleString()})` : "N/A"}</div>
+      <div>${t("stats.least")}: ${bottom ? `${state.partyNameByCode[bottom[0]] || bottom[0]} (${bottom[1].toLocaleString()})` : "N/A"}</div>
     `;
     return;
   }
@@ -79,9 +80,6 @@ function updateStatsContent() {
   if (isSelectedVsTopMode()) {
     const ctx = buildLabelContext();
     const config = MODE_LABELS[ctx.mode];
-    const selectedCode = partySelect.value;
-    const selectedName = state.partyNameByCode[selectedCode] || selectedCode;
-    const targetLabel = getCompareTargetLabel();
     const metricMode = getSelectedMetricMode();
     const geo = state.geojsonByGranularity[granularitySelect.value];
     const rows = [];
@@ -94,7 +92,7 @@ function updateStatsContent() {
       }
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
+      statsEl.innerHTML = noDataHtml(config, ctx);
       return;
     }
     const metricKey = metricMode === "ratio" ? "ratio" : "gap";
@@ -106,9 +104,9 @@ function updateStatsContent() {
     const fmt = (v) => (metricMode === "ratio" ? ratioLabel(v) : ppSignedLabel(v));
     statsEl.innerHTML = `
       <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
-      <div>平均: ${fmt(avgValue)}</div>
-      <div>最小: ${fmt(closest[metricKey])} (${closest.label})</div>
-      <div>最大: ${fmt(farthest[metricKey])} (${farthest.label})</div>
+      <div>${t("stats.average")}: ${fmt(avgValue)}</div>
+      <div>${t("stats.min")}: ${fmt(closest[metricKey])} (${closest.label})</div>
+      <div>${t("stats.max")}: ${fmt(farthest[metricKey])} (${farthest.label})</div>
     `;
     return;
   }
@@ -127,7 +125,7 @@ function updateStatsContent() {
       }
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
+      statsEl.innerHTML = noDataHtml(config, ctx);
       return;
     }
     const metricMode = getRulingMetricMode();
@@ -140,9 +138,9 @@ function updateStatsContent() {
     const fmt = (v) => (metricMode === "ratio" ? ratioLabel(v) : ppSignedLabel(v));
     statsEl.innerHTML = `
       <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
-      <div>平均: ${fmt(avgValue)}</div>
-      <div>最小: ${fmt(closest[metricKey])} (${closest.label})</div>
-      <div>最大: ${fmt(farthest[metricKey])} (${farthest.label})</div>
+      <div>${t("stats.average")}: ${fmt(avgValue)}</div>
+      <div>${t("stats.min")}: ${fmt(closest[metricKey])} (${closest.label})</div>
+      <div>${t("stats.max")}: ${fmt(farthest[metricKey])} (${farthest.label})</div>
     `;
     return;
   }
@@ -157,7 +155,7 @@ function updateStatsContent() {
       if (typeof s.concentration === "number" && !Number.isNaN(s.concentration)) rows.push(s);
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
+      statsEl.innerHTML = noDataHtml(config, ctx);
       return;
     }
     const avgHHI = rows.reduce((acc, r) => acc + r.concentration, 0) / rows.length;
@@ -166,11 +164,11 @@ function updateStatsContent() {
     const avgEffective = avgHHI > 0 ? (1 / avgHHI) : null;
     statsEl.innerHTML = `
       <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
-      <div>表示単位: ${getGranularityLabel()}</div>
-      <div>平均HHI: ${avgHHI.toFixed(3)}</div>
-      <div>平均実効政党数 (1/HHI): ${avgEffective == null ? "N/A" : avgEffective.toFixed(2)}</div>
-      <div>最も集中: ${maxHHI.label} (${maxHHI.concentration.toFixed(3)})</div>
-      <div>最も分散: ${minHHI.label} (${minHHI.concentration.toFixed(3)})</div>
+      <div>${t("stats.displayUnit")}: ${getGranularityLabel()}</div>
+      <div>${t("stats.avgHHI")}: ${avgHHI.toFixed(3)}</div>
+      <div>${t("stats.avgEffectivePartyCount")}: ${avgEffective == null ? "N/A" : avgEffective.toFixed(2)}</div>
+      <div>${t("stats.mostConcentrated")}: ${maxHHI.label} (${maxHHI.concentration.toFixed(3)})</div>
+      <div>${t("stats.mostDispersed")}: ${minHHI.label} (${minHHI.concentration.toFixed(3)})</div>
     `;
     return;
   }
@@ -185,7 +183,7 @@ function updateStatsContent() {
       if (typeof s.margin === "number" && !Number.isNaN(s.margin)) rows.push(s);
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
+      statsEl.innerHTML = noDataHtml(config, ctx);
       return;
     }
     const avg = rows.reduce((acc, r) => acc + r.margin, 0) / rows.length;
@@ -193,10 +191,10 @@ function updateStatsContent() {
     const minRow = [...rows].sort((a, b) => a.margin - b.margin)[0];
     statsEl.innerHTML = `
       <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
-      <div>表示単位: ${getGranularityLabel()}</div>
-      <div>平均: ${ppLabel(avg)}</div>
-      <div>最も接戦: ${minRow.label} (${ppLabel(minRow.margin)})</div>
-      <div>最も大差: ${maxRow.label} (${ppLabel(maxRow.margin)})</div>
+      <div>${t("stats.displayUnit")}: ${getGranularityLabel()}</div>
+      <div>${t("stats.average")}: ${ppLabel(avg)}</div>
+      <div>${t("stats.mostCompetitive")}: ${minRow.label} (${ppLabel(minRow.margin)})</div>
+      <div>${t("stats.largestMargin")}: ${maxRow.label} (${ppLabel(maxRow.margin)})</div>
     `;
     return;
   }
@@ -211,7 +209,7 @@ function updateStatsContent() {
       if (typeof s.nationalDivergence === "number" && !Number.isNaN(s.nationalDivergence)) rows.push(s);
     }
     if (!rows.length) {
-      statsEl.innerHTML = `<div class="name">${resolveLabel(config.statsTitle, ctx)}</div><div>データなし</div>`;
+      statsEl.innerHTML = noDataHtml(config, ctx);
       return;
     }
     const avg = rows.reduce((acc, r) => acc + r.nationalDivergence, 0) / rows.length;
@@ -219,10 +217,10 @@ function updateStatsContent() {
     const minRow = [...rows].sort((a, b) => a.nationalDivergence - b.nationalDivergence)[0];
     statsEl.innerHTML = `
       <div class="name">${resolveLabel(config.statsTitle, ctx)}</div>
-      <div>表示単位: ${getGranularityLabel()}</div>
-      <div>平均: ${avg.toFixed(3)}</div>
-      <div>最も全国平均から乖離: ${maxRow.label} (${maxRow.nationalDivergence.toFixed(3)})</div>
-      <div>最も全国平均に近い: ${minRow.label} (${minRow.nationalDivergence.toFixed(3)})</div>
+      <div>${t("stats.displayUnit")}: ${getGranularityLabel()}</div>
+      <div>${t("stats.average")}: ${avg.toFixed(3)}</div>
+      <div>${t("stats.mostDivergent")}: ${maxRow.label} (${maxRow.nationalDivergence.toFixed(3)})</div>
+      <div>${t("stats.closestToNational")}: ${minRow.label} (${minRow.nationalDivergence.toFixed(3)})</div>
     `;
     return;
   }
@@ -230,6 +228,8 @@ function updateStatsContent() {
   const selectedCode = partySelect.value;
   const summary = state.parties.find((p) => p.code === selectedCode);
   if (!summary) return;
+
+  const summaryName = state.partyNameByCode[selectedCode] || selectedCode;
   const geo = state.geojsonByGranularity[granularitySelect.value];
   const rows = [];
   for (const feature of geo?.features || []) {
@@ -238,10 +238,10 @@ function updateStatsContent() {
   }
   if (!rows.length) {
     statsEl.innerHTML = `
-      <div class="name">${summary.name}</div>
-      <div>全国得票数: ${summary.total_votes.toLocaleString()} 票</div>
-      <div>市区町村数: ${summary.municipalities.toLocaleString()}</div>
-      <div>データなし</div>
+      <div class="name">${summaryName}</div>
+      <div>${t("stats.nationalVotes")}: ${summary.total_votes.toLocaleString()} ${t("stats.voteUnit")}</div>
+      <div>${t("stats.municipalityCount")}: ${summary.municipalities.toLocaleString()}</div>
+      <div>${t("stats.noData")}</div>
     `;
     return;
   }
@@ -251,11 +251,11 @@ function updateStatsContent() {
   const maxRow = sortedDesc[0];
   const avgShare = rows.reduce((acc, r) => acc + r.share, 0) / rows.length;
   statsEl.innerHTML = `
-    <div class="name">${summary.name}</div>
-    <div>全国得票数: ${summary.total_votes.toLocaleString()} 票</div>
-    <div>市区町村数: ${summary.municipalities.toLocaleString()}</div>
-    <div>平均得票率: ${pct(avgShare)}</div>
-    <div>最小得票率: ${pct(minRow.share)} (${minRow.label})</div>
-    <div>最大得票率: ${pct(maxRow.share)} (${maxRow.label})</div>
+    <div class="name">${summaryName}</div>
+    <div>${t("stats.nationalVotes")}: ${summary.total_votes.toLocaleString()} ${t("stats.voteUnit")}</div>
+    <div>${t("stats.municipalityCount")}: ${summary.municipalities.toLocaleString()}</div>
+    <div>${t("stats.avgVoteShare")}: ${pct(avgShare)}</div>
+    <div>${t("stats.minVoteShare")}: ${pct(minRow.share)} (${minRow.label})</div>
+    <div>${t("stats.maxVoteShare")}: ${pct(maxRow.share)} (${maxRow.label})</div>
   `;
 }

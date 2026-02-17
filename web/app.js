@@ -22,6 +22,16 @@ import {
   getFeatureRenderStats,
 } from "./modules/modes.js";
 import { MODE_LABELS, buildLabelContext, resolveLabel } from "./modules/mode-labels.js";
+import {
+  initLocale,
+  translateStaticHtml,
+  onLocaleChange,
+  t,
+  getLocale,
+  setLocale,
+  loadNames,
+  getPartyName,
+} from "./modules/i18n.js";
 const DATA_FILE_NAMES = [
   "municipalities.geojson",
   "prefectures.geojson",
@@ -49,12 +59,25 @@ function initShareXButton() {
   const shareXButton = document.getElementById("shareXButton");
   if (!shareXButton) return;
   shareXButton.addEventListener("click", () => {
-    const panelTitle = "第51回衆院選 比例区得票マップ";
+    const panelTitle = t("share.panelTitle");
     const modeLabel = (legendModeLabel?.textContent || "").trim();
     const text = modeLabel ? `${panelTitle} | ${modeLabel}` : panelTitle;
     const url = new URL(window.location.href);
+    if (getLocale() !== "ja") {
+      url.searchParams.set("lang", getLocale());
+    } else {
+      url.searchParams.delete("lang");
+    }
     const shareUrl = `https://x.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url.toString())}`;
     window.open(shareUrl, "_blank", "noopener,noreferrer");
+  });
+}
+
+function initLangToggle() {
+  const langToggle = document.getElementById("langToggle");
+  if (!langToggle) return;
+  langToggle.addEventListener("click", () => {
+    setLocale(getLocale() === "ja" ? "en" : "ja");
   });
 }
 
@@ -196,8 +219,11 @@ function handleControlChange() {
 }
 
 async function init() {
+  initLocale();
   initDomRefs();
+  translateStaticHtml();
   initShareXButton();
+  initLangToggle();
   initMap();
 
   async function loadDataWithFallback(fileName) {
@@ -224,6 +250,7 @@ async function init() {
     election,
     partyList,
   ] = await Promise.all(DATA_FILE_NAMES.map((fileName) => loadDataWithFallback(fileName)));
+  await loadNames();
 
   state.geojsonByGranularity = {
     muni: muniGeojson,
@@ -232,7 +259,7 @@ async function init() {
   };
   state.electionData = election;
   state.parties = partyList;
-  state.partyNameByCode = Object.fromEntries(partyList.map((p) => [p.code, p.name]));
+  state.partyNameByCode = Object.fromEntries(partyList.map((p) => [p.code, getPartyName(p.code)]));
   buildPartyColorMap();
   for (const f of prefGeojson.features || []) {
     if (f?.properties?.pref_name && f?.properties?.block_name) {
@@ -250,6 +277,33 @@ async function init() {
   state.lastPlotMode = plotModeSelect.value;
   updateControlVisibility();
   renderGeoLayer();
+
+  onLocaleChange(async (newLocale) => {
+    leafletMap.closePopup();
+    const selectedPartyCode = partySelect.value;
+    const selectedTargetCode = compareTargetSelect.value;
+    const selectedRank = rankSelect.value;
+
+    translateStaticHtml();
+    state.partyNameByCode = Object.fromEntries(state.parties.map((p) => [p.code, getPartyName(p.code)]));
+    populatePartySelect();
+    if (selectedPartyCode && state.parties.some((p) => p.code === selectedPartyCode)) {
+      partySelect.value = selectedPartyCode;
+    }
+    populateCompareTargetSelect();
+    if (
+      selectedTargetCode &&
+      (selectedTargetCode === "top" || state.parties.some((p) => p.code === selectedTargetCode))
+    ) {
+      compareTargetSelect.value = selectedTargetCode;
+    }
+    populateRankSelect();
+    if (selectedRank) rankSelect.value = selectedRank;
+    updateControlVisibility();
+    writeStateToUrl();
+    await loadNames(newLocale);
+    recolor();
+  });
 
   partySelect.addEventListener("change", handleControlChange);
   scaleModeSelect.addEventListener("change", handleControlChange);
@@ -279,5 +333,5 @@ async function init() {
 init().catch((err) => {
   console.error(err);
   const el = document.getElementById("stats");
-  if (el) el.innerHTML = "データ読み込みに失敗しました。";
+  if (el) el.innerHTML = t("error.dataLoad");
 });

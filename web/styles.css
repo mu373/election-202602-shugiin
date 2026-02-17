@@ -6,6 +6,19 @@
   --border: #d4dae2;
   --nodata: #b6b8bc;
 }
+:root:lang(en) {
+  --panel-width: 340px;
+  letter-spacing: 0.01em;
+}
+body:lang(en) {
+  font-family: "Helvetica Neue", Helvetica, -apple-system, BlinkMacSystemFont, Arial, "Segoe UI", system-ui, sans-serif;
+}
+:lang(en) h1, :lang(en) .sidebar h1,
+:lang(en) h2,
+:lang(en) h3 {
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
 * { box-sizing: border-box; }
 body {
   margin: 0;
@@ -70,6 +83,9 @@ body {
 }
 .x-share-button i {
   line-height: 1;
+}
+.lang-toggle {
+  font-size: 18px;
 }
 .info-modal {
   position: absolute;

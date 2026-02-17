@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>第51回衆院選比例区得票マップ</title>
+    <title data-i18n="html.pageTitle">第51回衆院選比例区得票マップ</title>
     <meta name="description" content="第51回衆議院議員選挙の比例区得票データを地図で可視化。" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="第51回衆院選 比例区得票マップ" />
@@ -39,6 +39,8 @@
           type="button"
           aria-label="X で共有"
           title="X で共有"
+          data-i18n-aria-label="html.shareXAria"
+          data-i18n-title="html.shareXTitle"
         >
           <i class="fa-brands fa-x-twitter" aria-hidden="true"></i>
         </button>
@@ -49,6 +51,8 @@
           rel="noopener noreferrer"
           aria-label="GitHub リポジトリを開く"
           title="GitHub"
+          data-i18n-aria-label="html.githubAria"
+          data-i18n-title="html.githubTitle"
         >
           <svg viewBox="0 0 16 16" aria-hidden="true">
             <path
@@ -65,109 +69,122 @@
           aria-haspopup="dialog"
           aria-expanded="false"
           title="データ・出典"
+          data-i18n-aria-label="html.infoAria"
+          data-i18n-title="html.infoTitle"
         >
           i
+        </button>
+        <button
+          id="langToggle"
+          class="action-button lang-toggle"
+          type="button"
+          aria-label="表示言語を切り替え"
+          title="表示言語を切り替え"
+          data-i18n-aria-label="lang.switchAria"
+          data-i18n-title="lang.switchAria"
+        >
+          <i class="fa-solid fa-globe" aria-hidden="true"></i>
         </button>
       </div>
       <div class="left-column">
       <aside class="sidebar">
-        <button class="sidebar-close" id="sidebarClose" type="button" aria-label="設定を閉じる">✕ 閉じる</button>
-        <h1 id="titleMain"><span class="title-chunk">第51回衆議院議員選挙</span> <span class="title-chunk">比例区得票マップ</span></h1>
+        <button class="sidebar-close" id="sidebarClose" type="button" aria-label="設定を閉じる" data-i18n="html.sidebarClose" data-i18n-aria-label="html.sidebarCloseAria">✕ 閉じる</button>
+        <h1 id="titleMain"><span class="title-chunk" data-i18n="html.titleLine1">第51回衆議院議員選挙</span> <span class="title-chunk" data-i18n="html.titleLine2">比例区得票マップ</span></h1>
         <div class="control-group" id="groupPlotMode">
-          <label for="plotModeSelect">表示モード</label>
+          <label for="plotModeSelect" data-i18n="html.control.plotMode">表示モード</label>
           <select id="plotModeSelect">
-            <option value="share" selected>政党得票率</option>
-            <option value="party_rank">選択政党の順位</option>
-            <option value="rank">得票率第N位の政党</option>
-            <option value="opposition_rank">野党第N党</option>
-            <option value="selected_diff">二つの政党の比較</option>
-            <option value="ruling_vs_opposition">与野党比較</option>
-            <option value="winner_margin">上位2党の得票率差（接戦度）</option>
-            <option value="concentration">票の集中度</option>
-            <option value="js_divergence">全国平均からの乖離度</option>
+            <option value="share" selected data-i18n="mode.share">政党得票率</option>
+            <option value="party_rank" data-i18n="mode.party_rank">選択政党の順位</option>
+            <option value="rank" data-i18n="mode.rank">得票率第N位の政党</option>
+            <option value="opposition_rank" data-i18n="mode.opposition_rank">野党第N党</option>
+            <option value="selected_diff" data-i18n="mode.selected_diff">二つの政党の比較</option>
+            <option value="ruling_vs_opposition" data-i18n="mode.ruling_vs_opposition">与野党比較</option>
+            <option value="winner_margin" data-i18n="mode.winner_margin">上位2党の得票率差（接戦度）</option>
+            <option value="concentration" data-i18n="mode.concentration">票の集中度</option>
+            <option value="js_divergence" data-i18n="mode.js_divergence">全国平均からの乖離度</option>
           </select>
         </div>
         <div id="modeHelp" class="help hidden"></div>
         <div class="control-group" id="groupGranularity">
-          <label for="granularitySelect">表示単位</label>
+          <label for="granularitySelect" data-i18n="html.control.granularity">表示単位</label>
           <select id="granularitySelect">
-            <option value="block">ブロック</option>
-            <option value="pref">都道府県</option>
-            <option value="muni" selected>市区町村</option>
+            <option value="block" data-i18n="granularity.block">ブロック</option>
+            <option value="pref" data-i18n="granularity.pref">都道府県</option>
+            <option value="muni" selected data-i18n="granularity.muni">市区町村</option>
           </select>
         </div>
         <div class="control-group" id="groupParty">
-          <label for="partySelect">基準政党</label>
+          <label for="partySelect" data-i18n="html.control.party">基準政党</label>
           <select id="partySelect"></select>
         </div>
         <div class="control-group hidden" id="groupCompareTarget">
-          <label for="compareTargetSelect">比較対象</label>
+          <label for="compareTargetSelect" data-i18n="html.control.compareTarget">比較対象</label>
           <select id="compareTargetSelect">
-            <option value="top" selected>第1党</option>
+            <option value="top" selected data-i18n="compareTarget.top">第1党</option>
           </select>
         </div>
         <div class="control-group hidden" id="groupSelectedMetric">
-          <label for="selectedMetricSelect">指標</label>
+          <label for="selectedMetricSelect" data-i18n="html.control.metric">指標</label>
           <select id="selectedMetricSelect">
-            <option value="diff" selected>差 (基準 - 比較)</option>
-            <option value="ratio">比 (基準/比較)</option>
+            <option value="diff" selected data-i18n="metric.selected.diff">差 (基準 - 比較)</option>
+            <option value="ratio" data-i18n="metric.selected.ratio">比 (基準/比較)</option>
           </select>
         </div>
         <div id="selectedMetricHelp" class="help hidden"></div>
         <div class="control-group hidden" id="groupRulingMetric">
-          <label for="rulingMetricSelect">指標</label>
+          <label for="rulingMetricSelect" data-i18n="html.control.metric">指標</label>
           <select id="rulingMetricSelect">
-            <option value="diff" selected>差 (与党 - 野党)</option>
-            <option value="ratio">比 (与党/野党)</option>
+            <option value="diff" selected data-i18n="metric.ruling.diff">差 (与党 - 野党)</option>
+            <option value="ratio" data-i18n="metric.ruling.ratio">比 (与党/野党)</option>
           </select>
         </div>
         <div id="rulingMetricHelp" class="help hidden"></div>
         <div class="control-group" id="groupScaleMode">
-          <label for="scaleMode">色スケール</label>
+          <label for="scaleMode" data-i18n="html.control.scale">色スケール</label>
           <select id="scaleMode">
-            <option value="fixed">固定スケール</option>
-            <option value="party">政党別スケール</option>
+            <option value="fixed" data-i18n="scale.fixed">固定スケール</option>
+            <option value="party" data-i18n="scale.party">政党別スケール</option>
           </select>
         </div>
-        <div id="scaleHelp" class="help">固定: 政党間で同じ基準。</br>政党別: 選択中政党内で濃淡を見やすく調整。</div>
+        <div id="scaleHelp" class="help" data-i18n-html="html.scaleHelp">固定: 政党間で同じ基準。<br>政党別: 選択中政党内で濃淡を見やすく調整。</div>
         <div class="control-group" id="groupRank">
-          <label for="rankSelect">順位（N）</label>
+          <label for="rankSelect" data-i18n="html.control.rank">順位（N）</label>
           <select id="rankSelect"></select>
         </div>
 
-        <div class="block-title display-settings-title">表示設定</div>
+        <div class="block-title display-settings-title" data-i18n="html.displaySettings">表示設定</div>
         <div class="toggle-group">
           <div class="control-group" id="groupLabels">
             <label class="checkbox-row" for="labelToggle">
               <input id="labelToggle" type="checkbox" />
-              地名ラベル表示
+              <span data-i18n="html.showLabels">地名ラベル表示</span>
             </label>
           </div>
           <div class="control-group" id="groupPrefBorders">
             <label class="checkbox-row" for="prefBorderToggle">
               <input id="prefBorderToggle" type="checkbox" checked />
-              都道府県境界を表示
+              <span data-i18n="html.showPrefBorders">都道府県境界を表示</span>
             </label>
           </div>
         </div>
 
         <div class="sidebar-stats" id="sidebarStats">
-          <div class="block-title">統計</div>
+          <div class="block-title" data-i18n="html.stats">統計</div>
           <div id="statsMirror" class="stats"></div>
         </div>
       </aside>
       <div class="legend-panel" id="legendPanel">
-        <div class="legend-panel-title"><span class="title-chunk">第51回衆院選</span> <span class="title-chunk">比例区得票マップ</span></div>
+        <div class="legend-panel-title"><span class="title-chunk" data-i18n="html.legendPanelLine1">第51回衆院選</span> <span class="title-chunk" data-i18n="html.legendPanelLine2">比例区得票マップ</span></div>
         <div class="legend-mode-label" id="legendModeLabel"></div>
         <div class="legend-mode-desc" id="legendModeDesc"></div>
-        <div class="block-title" id="legendTitle">凡例（得票率）</div>
+        <div class="block-title" id="legendTitle" data-i18n="legend.defaultTitle">凡例（得票率）</div>
         <div id="legend"></div>
-        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="false" aria-label="設定パネルを開閉">
+        <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-expanded="false" aria-label="設定パネルを開閉" data-i18n-aria-label="html.sidebarToggleAria">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         </button>
       </div>
       <div class="stats-panel" id="statsPanel">
-        <div class="block-title">統計</div>
+        <div class="block-title" data-i18n="html.stats">統計</div>
         <div id="stats" class="stats"></div>
       </div>
       </div>
@@ -179,24 +196,24 @@
           aria-labelledby="infoTitle"
         >
           <div class="info-modal-header">
-            <h2 id="infoTitle">データ・出典情報</h2>
-            <button id="infoCloseButton" class="info-close" type="button" aria-label="閉じる">×</button>
+            <h2 id="infoTitle" data-i18n="html.infoModalTitle">データ・出典情報</h2>
+            <button id="infoCloseButton" class="info-close" type="button" aria-label="閉じる" data-i18n-aria-label="html.infoCloseAria">×</button>
           </div>
           <div class="info-modal-content">
-            <p>第51回衆議院議員選挙（令和8年2月8日執行）の比例区の得票データを可視化しています。</p>
-            <p>比例代表 市区町村別・党派別得票データは、AIエージェントを用いて各都道府県選挙管理委員会サイトから取得・変換しています。</p>
-            <h3>主要データ</h3>
+            <p data-i18n="info.intro1">第51回衆議院議員選挙（令和8年2月8日執行）の比例区の得票データを可視化しています。</p>
+            <p data-i18n="info.intro2">比例代表 市区町村別・党派別得票データは、AIエージェントを用いて各都道府県選挙管理委員会サイトから取得・変換しています。</p>
+            <h3 data-i18n="info.mainData">主要データ</h3>
             <ul>
-              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/data/processed/hirei_shikuchouson.csv" target="_blank" rel="noopener noreferrer">比例代表 市区町村別・党派別得票</a></li>
-              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/public/data/municipalities.geojson" target="_blank" rel="noopener noreferrer">市区町村境界</a>（<a href="https://nlftp.mlit.go.jp/ksj/" target="_blank" rel="noopener noreferrer">国土数値情報 N03 2025</a>）</li>
-              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/public/data/prefectures.geojson" target="_blank" rel="noopener noreferrer">都道府県境界</a>（<a href="https://nlftp.mlit.go.jp/ksj/" target="_blank" rel="noopener noreferrer">国土数値情報 N03 2025</a>）</li>
-              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/public/data/blocks.geojson" target="_blank" rel="noopener noreferrer">比例ブロック境界</a>（都道府県境界を集約して作成）</li>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/data/processed/hirei_shikuchouson.csv" target="_blank" rel="noopener noreferrer" data-i18n="info.mainDataVotes">比例代表 市区町村別・党派別得票</a></li>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/public/data/municipalities.geojson" target="_blank" rel="noopener noreferrer" data-i18n="info.mainDataMunicipalityBoundary">市区町村境界</a>（<a href="https://nlftp.mlit.go.jp/ksj/" target="_blank" rel="noopener noreferrer" data-i18n="info.mainDataN03">国土数値情報 N03 2025</a>）</li>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/public/data/prefectures.geojson" target="_blank" rel="noopener noreferrer" data-i18n="info.mainDataPrefBoundary">都道府県境界</a>（<a href="https://nlftp.mlit.go.jp/ksj/" target="_blank" rel="noopener noreferrer" data-i18n="info.mainDataN03">国土数値情報 N03 2025</a>）</li>
+              <li><a href="https://github.com/mu373/election-202602-shugiin/blob/main/web/public/data/blocks.geojson" target="_blank" rel="noopener noreferrer" data-i18n="info.mainDataBlockBoundary">比例ブロック境界</a><span data-i18n="info.mainDataBlockBoundaryNote">（都道府県境界を集約して作成）</span></li>
             </ul>
-            <h3>ライセンス</h3>
+            <h3 data-i18n="info.license">ライセンス</h3>
             <ul>
-              <li>コード: MIT</li>
-              <li>データ: CC0 1.0（特記なき場合）</li>
-              <li>加工元データ: 提供元の利用条件に準拠</li>
+              <li data-i18n="info.licenseCode">コード: MIT</li>
+              <li data-i18n="info.licenseData">データ: CC0 1.0（特記なき場合）</li>
+              <li data-i18n="info.licenseSource">加工元データ: 提供元の利用条件に準拠</li>
             </ul>
           </div>
         </div>

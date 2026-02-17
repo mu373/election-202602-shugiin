@@ -25,6 +25,7 @@ import {
 import { partyColor, getRankedPartiesForFeature } from "./data.js";
 import { pctLabel, ppLabel, ratioLabel } from "./format.js";
 import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
+import { t } from "./i18n.js";
 
 export function updateLegend() {
   updateLegendTitle();
@@ -43,14 +44,14 @@ export function updateLegend() {
     if (legendMaxRank === 0) {
       const noDataRow = document.createElement("div");
       noDataRow.className = "legend-row";
-      noDataRow.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>データなし`;
+      noDataRow.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>${t("legend.noData")}`;
       legendEl.appendChild(noDataRow);
       return;
     }
     for (let rank = 1; rank <= legendMaxRank; rank += 1) {
       const row = document.createElement("div");
       row.className = "legend-row";
-      row.innerHTML = `<span class="legend-swatch" style="background:${getPartyRankColor(rank)}"></span>第${rank}位 (${(counts[rank] || 0).toLocaleString()})`;
+      row.innerHTML = `<span class="legend-swatch" style="background:${getPartyRankColor(rank)}"></span>${t("rank.label", rank)} (${(counts[rank] || 0).toLocaleString()})`;
       legendEl.appendChild(row);
     }
     if ((maxRankInData || 0) > legendMaxRank) {
@@ -59,12 +60,12 @@ export function updateLegend() {
         .reduce((acc, [, count]) => acc + count, 0);
       const tailRow = document.createElement("div");
       tailRow.className = "legend-row";
-      tailRow.innerHTML = `<span class="legend-swatch" style="background:${getPartyRankColor(legendMaxRank + 1)}"></span>第${legendMaxRank + 1}位以下 (${tailCount.toLocaleString()})`;
+      tailRow.innerHTML = `<span class="legend-swatch" style="background:${getPartyRankColor(legendMaxRank + 1)}"></span>${t("rank.labelAndBelow", legendMaxRank + 1)} (${tailCount.toLocaleString()})`;
       legendEl.appendChild(tailRow);
     }
     const noDataRow = document.createElement("div");
     noDataRow.className = "legend-row";
-    noDataRow.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>データなし`;
+    noDataRow.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>${t("legend.noData")}`;
     legendEl.appendChild(noDataRow);
     return;
   }
@@ -90,7 +91,7 @@ export function updateLegend() {
     }
     const noDataRow = document.createElement("div");
     noDataRow.className = "legend-row";
-    noDataRow.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>データなし`;
+    noDataRow.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>${t("legend.noData")}`;
     legendEl.appendChild(noDataRow);
     return;
   }
@@ -145,7 +146,7 @@ export function updateLegend() {
   const semanticLeft = config?.semanticLeft ? resolveLabel(config.semanticLeft, ctx) : "";
   const semanticRight = config?.semanticRight ? resolveLabel(config.semanticRight, ctx) : "";
   const semanticRow = (isSignedDiffMode() || isRulingRatioMode() || isSelectedRatioMode())
-    ? `<div class="legend-axis"><span>${semanticLeft}</span><span>${(isRulingRatioMode() || isSelectedRatioMode()) ? "拮抗 (1.00)" : "拮抗"}</span><span>${semanticRight}</span></div>`
+    ? `<div class="legend-axis"><span>${semanticLeft}</span><span>${(isRulingRatioMode() || isSelectedRatioMode()) ? t("legend.competitiveRatio") : t("legend.competitive")}</span><span>${semanticRight}</span></div>`
     : "";
   legendEl.innerHTML = `
     <div class="legend-gradient" style="background: linear-gradient(to right, ${gradientStops});"></div>
@@ -156,7 +157,7 @@ export function updateLegend() {
   `;
   const noData = document.createElement("div");
   noData.className = "legend-row";
-  noData.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>データなし`;
+  noData.innerHTML = `<span class="legend-swatch" style="background:${NODATA_COLOR}"></span>${t("legend.noData")}`;
   legendEl.appendChild(noData);
 }
 
@@ -166,5 +167,5 @@ export function updateLegendTitle() {
   const config = MODE_LABELS[ctx.mode];
   legendTitleEl.textContent = config?.legendTitle
     ? resolveLabel(config.legendTitle, ctx)
-    : "凡例（得票率）";
+    : t("legend.defaultTitle");
 }

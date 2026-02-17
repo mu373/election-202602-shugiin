@@ -1,6 +1,7 @@
 import { state } from "./state.js";
 import { granularitySelect } from "./dom.js";
 import { PARTY_COLOR_MAP, DEFAULT_PARTY_PALETTE } from "./constants.js";
+import { t, getMuniFull, getPrefName, getBlockName } from "./i18n.js";
 
 export function buildPartyColorMap() {
   state.partyColorByCode = {};
@@ -72,16 +73,8 @@ export function getFeatureStats(feature, partyCode) {
   if (granularity === "muni") {
     const muniCode = String(feature.properties.muni_code || "").padStart(5, "0");
     const rec = state.electionData[muniCode] || {};
-    const baseName = `${rec.name || feature.properties.muni_name || ""}`.trim();
-    const prefName = `${rec.pref || feature.properties.pref_name || ""}`.trim();
-    const fullName = (() => {
-      if (!baseName) return "";
-      if (!prefName) return baseName;
-      if (baseName.startsWith(prefName)) return baseName;
-      return `${prefName}${baseName}`;
-    })();
     return {
-      label: fullName,
+      label: getMuniFull(muniCode),
       share: getShare(muniCode, partyCode),
       validVotes: rec.valid_votes ?? null,
     };
@@ -90,7 +83,7 @@ export function getFeatureStats(feature, partyCode) {
     const prefName = feature.properties.pref_name;
     const agg = state.prefAgg[prefName];
     return {
-      label: prefName || "都道府県",
+      label: getPrefName(feature.properties.pref_code) || t("data.prefecture"),
       share: getAggregateShare(agg, partyCode),
       validVotes: agg ? agg.valid_votes : null,
     };
@@ -98,7 +91,7 @@ export function getFeatureStats(feature, partyCode) {
   const blockName = feature.properties.block_name;
   const agg = state.blockAgg[blockName];
   return {
-    label: blockName || "ブロック",
+    label: getBlockName(feature.properties.block_id) || t("data.block"),
     share: getAggregateShare(agg, partyCode),
     validVotes: agg ? agg.valid_votes : null,
   };

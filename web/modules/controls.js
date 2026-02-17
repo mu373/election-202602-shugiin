@@ -39,13 +39,14 @@ import {
   SELECTED_DIFF_DEFAULT_BASE,
   SELECTED_DIFF_DEFAULT_TARGET,
 } from "./constants.js";
+import { t, getLocale } from "./i18n.js";
 
 export function populatePartySelect() {
   partySelect.innerHTML = "";
   for (const p of state.parties) {
     const option = document.createElement("option");
     option.value = p.code;
-    option.textContent = p.name;
+    option.textContent = state.partyNameByCode[p.code] || p.name || p.code;
     partySelect.appendChild(option);
   }
 }
@@ -55,15 +56,15 @@ export function populateCompareTargetSelect() {
   compareTargetSelect.innerHTML = "";
   const topOption = document.createElement("option");
   topOption.value = "top";
-  topOption.textContent = "第1党";
+  topOption.textContent = t("compareTarget.top");
   compareTargetSelect.appendChild(topOption);
 
   const group = document.createElement("optgroup");
-  group.label = "各政党";
+  group.label = t("compareTarget.parties");
   for (const p of state.parties) {
     const option = document.createElement("option");
     option.value = p.code;
-    option.textContent = p.name;
+    option.textContent = state.partyNameByCode[p.code] || p.name || p.code;
     group.appendChild(option);
   }
   compareTargetSelect.appendChild(group);
@@ -78,7 +79,7 @@ export function populateRankSelect() {
   for (let r = 1; r <= maxRank; r += 1) {
     const option = document.createElement("option");
     option.value = String(r);
-    option.textContent = `第${r}位`;
+    option.textContent = t("rank.label", r);
     rankSelect.appendChild(option);
   }
 }
@@ -96,22 +97,22 @@ export function updateControlVisibility() {
   groupParty.classList.toggle("hidden", isRank || isConcentration || isWinnerMargin || isRulingVsOpposition || isNationalDivergence);
   const partyLabelEl = document.querySelector('label[for="partySelect"]');
   if (partyLabelEl) {
-    partyLabelEl.textContent = isSelectedVsTop ? "基準政党" : "政党";
+    partyLabelEl.textContent = isSelectedVsTop ? t("control.baseParty") : t("control.party");
   }
   groupCompareTarget.classList.toggle("hidden", !isSelectedVsTop);
   groupSelectedMetric.classList.toggle("hidden", !isSelectedVsTop);
   selectedMetricHelpEl?.classList.toggle("hidden", !isSelectedVsTop);
   if (isSelectedVsTop && selectedMetricHelpEl) {
     selectedMetricHelpEl.innerHTML = getSelectedMetricMode() === "ratio"
-      ? "基準政党と比較対象の得票数の比率（基準/比較）を表示します。1.00が拮抗、1より大きいほど基準政党優勢、1より小さいほど基準政党劣勢です。"
-      : "基準政党と比較対象の得票率の差（基準 - 比較）を表示します。0.0 ptは拮抗、正の値は基準政党優勢、負の値は基準政党劣勢を示します。";
+      ? t("metricHelp.selected.ratio")
+      : t("metricHelp.selected.diff");
   }
   groupRulingMetric.classList.toggle("hidden", !isRulingVsOpposition);
   rulingMetricHelpEl?.classList.toggle("hidden", !isRulingVsOpposition);
   if (isRulingVsOpposition && rulingMetricHelpEl) {
     rulingMetricHelpEl.innerHTML = getRulingMetricMode() === "ratio"
-      ? "与党と野党の得票数の比率（与党/野党）を表示します。1.00が拮抗、1より大きいほど与党優勢、1より小さいほど野党優勢です。"
-      : "与党と野党の得票率の差（与党 - 野党）を表示します。0.0 ptは拮抗、正の値は与党優勢、負の値は野党優勢を示します。";
+      ? t("metricHelp.ruling.ratio")
+      : t("metricHelp.ruling.diff");
   }
   groupScaleMode.classList.toggle("hidden", plotModeSelect.value !== "share");
   scaleHelpEl.classList.toggle("hidden", plotModeSelect.value !== "share");
@@ -270,6 +271,11 @@ export function writeStateToUrl() {
     url.searchParams.set("metric", selectedMetricSelect.value);
   } else if (mode === "ruling_vs_opposition") {
     url.searchParams.set("metric", rulingMetricSelect.value);
+  }
+
+  url.searchParams.delete("lang");
+  if (getLocale() !== "ja") {
+    url.searchParams.set("lang", getLocale());
   }
 
   window.history.replaceState({}, "", url);
