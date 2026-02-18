@@ -8,3 +8,7 @@ data/raw/census/
 # Python
 __pycache__/
 *.pyc
+
+# Web
+web/node_modules/
+web/dist/
