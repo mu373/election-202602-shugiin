@@ -8,6 +8,7 @@ import {
   compareTargetSelect,
   selectedMetricSelect,
   rulingMetricSelect,
+  divergenceMethodSelect,
 } from "./dom.js";
 import {
   RULING_PARTY_CODE,
@@ -23,6 +24,8 @@ import {
   getRankedPartiesForFeature,
   getSharesForCurrentGranularity,
   getAggregateShare,
+  getBlockNameForFeature,
+  getFieldedPartyCodes,
 } from "./data.js";
 import { pct } from "./format.js";
 import { t } from "./i18n.js";
@@ -266,12 +269,43 @@ function jsDivergenceBase2(featureShares, nationalShares, partyCodes) {
   return js;
 }
 
+export function getDivergenceMethod() {
+  return divergenceMethodSelect?.value === "all" ? "all" : "fielded";
+}
+
+function renormalizeShares(shares, codes) {
+  const total = codes.reduce((acc, c) => acc + (shares[c] || 0), 0);
+  if (!total || total <= 0) return null;
+  const result = {};
+  for (const c of codes) {
+    result[c] = (shares[c] || 0) / total;
+  }
+  return result;
+}
+
 export function getNationalDivergenceForFeature(feature) {
   const nationalShares = getNationalPartyShareMap();
   const featureShares = getFeaturePartyShareMap(feature);
   if (!nationalShares || !featureShares) return null;
-  const partyCodes = state.parties.map((p) => p.code);
-  const js = jsDivergenceBase2(featureShares, nationalShares, partyCodes);
+
+  let partyCodes = state.parties.map((p) => p.code);
+  let pShares = featureShares;
+  let qShares = nationalShares;
+
+  if (getDivergenceMethod() === "fielded") {
+    const blockName = getBlockNameForFeature(feature);
+    if (blockName) {
+      const fielded = getFieldedPartyCodes(blockName);
+      if (fielded) {
+        partyCodes = partyCodes.filter((c) => fielded.has(c));
+        pShares = renormalizeShares(featureShares, partyCodes);
+        qShares = renormalizeShares(nationalShares, partyCodes);
+        if (!pShares || !qShares) return null;
+      }
+    }
+  }
+
+  const js = jsDivergenceBase2(pShares, qShares, partyCodes);
   if (!Number.isFinite(js) || js < 0) return null;
   return Math.sqrt(js);
 }

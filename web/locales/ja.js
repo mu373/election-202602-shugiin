@@ -17,6 +17,7 @@ const ja = {
   "html.control.metric": "指標",
   "html.control.scale": "色スケール",
   "html.control.rank": "順位（N）",
+  "html.control.divergenceMethod": "計算方式",
   "html.scaleHelp": "固定: 政党間で同じ基準。<br>政党別: 選択中政党内で濃淡を見やすく調整。",
   "html.displaySettings": "表示設定",
   "html.showLabels": "地名ラベル表示",
@@ -52,6 +53,11 @@ const ja = {
 
   "scale.fixed": "固定スケール",
   "scale.party": "政党別スケール",
+
+  "divergenceMethod.fielded": "立候補政党のみ",
+  "divergenceMethod.all": "全政党",
+  "divergenceMethodHelp.fielded": "各ブロックで立候補している政党のみを対象にJS距離を計算します。政党が当該地域で候補者を立てていないことによる影響を排除します。",
+  "divergenceMethodHelp.all": "立候補の有無にかかわらず全政党を対象にJS距離を計算します。",
 
   "compareTarget.top": "第1党",
   "compareTarget.parties": "各政党",

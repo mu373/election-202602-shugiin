@@ -113,6 +113,14 @@
             <option value="muni" selected data-i18n="granularity.muni">市区町村</option>
           </select>
         </div>
+        <div class="control-group hidden" id="groupDivergenceMethod">
+          <label for="divergenceMethodSelect" data-i18n="html.control.divergenceMethod">計算方式</label>
+          <select id="divergenceMethodSelect">
+            <option value="fielded" selected data-i18n="divergenceMethod.fielded">立候補政党のみ</option>
+            <option value="all" data-i18n="divergenceMethod.all">全政党</option>
+          </select>
+        </div>
+        <div id="divergenceMethodHelp" class="help hidden"></div>
         <div class="control-group" id="groupParty">
           <label for="partySelect" data-i18n="html.control.party">基準政党</label>
           <select id="partySelect"></select>

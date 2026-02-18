@@ -23,6 +23,7 @@ const en = {
   "html.control.metric": "Metric",
   "html.control.scale": "Color Scale",
   "html.control.rank": "Rank (N)",
+  "html.control.divergenceMethod": "Method",
   "html.scaleHelp": "Fixed: Same scale across all parties.<br>Per-party: Optimized contrast for the selected party.",
   "html.displaySettings": "Display",
   "html.showLabels": "Show location labels",
@@ -58,6 +59,11 @@ const en = {
 
   "scale.fixed": "Fixed Scale",
   "scale.party": "Per-Party Scale",
+
+  "divergenceMethod.fielded": "Fielded parties only",
+  "divergenceMethod.all": "All parties",
+  "divergenceMethodHelp.fielded": "Computes JSD using only parties that fielded candidates in each PR block. Removes the effect of parties not fielding candidates in a given area.",
+  "divergenceMethodHelp.all": "Computes JSD using all parties regardless of whether they fielded candidates.",
 
   "compareTarget.top": "Leading Party",
   "compareTarget.parties": "Parties",

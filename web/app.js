@@ -1,5 +1,5 @@
 import { state } from "./modules/state.js";
-import { initDomRefs, plotModeSelect, partySelect, scaleModeSelect, granularitySelect, compareTargetSelect, selectedMetricSelect, rulingMetricSelect, rankSelect, labelToggle, prefBorderToggle, statsEl, sidebarToggle, sidebar, legendPanel, sidebarClose, legendModeLabel, legendModeDesc } from "./modules/dom.js";
+import { initDomRefs, plotModeSelect, partySelect, scaleModeSelect, granularitySelect, compareTargetSelect, selectedMetricSelect, rulingMetricSelect, rankSelect, divergenceMethodSelect, labelToggle, prefBorderToggle, statsEl, sidebarToggle, sidebar, legendPanel, sidebarClose, legendModeLabel, legendModeDesc } from "./modules/dom.js";
 import { SELECTED_DIFF_DEFAULT_BASE, SELECTED_DIFF_DEFAULT_TARGET } from "./modules/constants.js";
 import { quantile } from "./modules/colors.js";
 import { buildPartyColorMap, buildAggregates } from "./modules/data.js";
@@ -313,6 +313,7 @@ async function init() {
   selectedMetricSelect.addEventListener("change", handleControlChange);
   rulingMetricSelect.addEventListener("change", handleControlChange);
   rankSelect.addEventListener("change", handleControlChange);
+  divergenceMethodSelect.addEventListener("change", handleControlChange);
   labelToggle.addEventListener("change", handleControlChange);
   prefBorderToggle.addEventListener("change", handleControlChange);
   function toggleSidebar() {

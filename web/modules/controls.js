@@ -8,6 +8,7 @@ import {
   selectedMetricSelect,
   rulingMetricSelect,
   rankSelect,
+  divergenceMethodSelect,
   labelToggle,
   prefBorderToggle,
   groupParty,
@@ -16,8 +17,10 @@ import {
   groupRulingMetric,
   groupScaleMode,
   groupRank,
+  groupDivergenceMethod,
   groupPrefBorders,
   modeHelpEl,
+  divergenceMethodHelpEl,
   selectedMetricHelpEl,
   rulingMetricHelpEl,
   scaleHelpEl,
@@ -33,6 +36,7 @@ import {
   isAnyRankMode,
   getSelectedMetricMode,
   getRulingMetricMode,
+  getDivergenceMethod,
 } from "./modes.js";
 import { MODE_LABELS, buildLabelContext, resolveLabel } from "./mode-labels.js";
 import {
@@ -117,6 +121,13 @@ export function updateControlVisibility() {
   groupScaleMode.classList.toggle("hidden", plotModeSelect.value !== "share");
   scaleHelpEl.classList.toggle("hidden", plotModeSelect.value !== "share");
   groupRank.classList.toggle("hidden", !isRank);
+  groupDivergenceMethod.classList.toggle("hidden", !isNationalDivergence);
+  divergenceMethodHelpEl?.classList.toggle("hidden", !isNationalDivergence);
+  if (isNationalDivergence && divergenceMethodHelpEl) {
+    divergenceMethodHelpEl.innerHTML = getDivergenceMethod() === "fielded"
+      ? t("divergenceMethodHelp.fielded")
+      : t("divergenceMethodHelp.all");
+  }
   groupPrefBorders.classList.toggle("hidden", !isMuni);
   modeHelpEl.classList.toggle("hidden", !showModeHelp);
   if (showModeHelp) {
@@ -221,6 +232,10 @@ export function readStateFromUrl() {
       }
     }
   }
+  const qDivMethod = params.get("divMethod");
+  if (qDivMethod && (qDivMethod === "fielded" || qDivMethod === "all")) {
+    divergenceMethodSelect.value = qDivMethod;
+  }
   if (qLabels === "0" || qLabels === "false") {
     state.labelsVisible = false;
     labelToggle.checked = false;
@@ -257,6 +272,7 @@ export function writeStateToUrl() {
   url.searchParams.delete("target");
   url.searchParams.delete("metric");
   url.searchParams.delete("rank");
+  url.searchParams.delete("divMethod");
 
   if (mode === "share") {
     url.searchParams.set("party", partySelect.value);
@@ -271,6 +287,10 @@ export function writeStateToUrl() {
     url.searchParams.set("metric", selectedMetricSelect.value);
   } else if (mode === "ruling_vs_opposition") {
     url.searchParams.set("metric", rulingMetricSelect.value);
+  } else if (mode === "js_divergence") {
+    if (divergenceMethodSelect.value !== "fielded") {
+      url.searchParams.set("divMethod", divergenceMethodSelect.value);
+    }
   }
 
   url.searchParams.delete("lang");

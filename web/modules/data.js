@@ -123,6 +123,29 @@ export function getRankedPartiesForFeature(feature, excludedPartyCodes = null) {
     .sort((a, b) => b.share - a.share);
 }
 
+export function getBlockNameForFeature(feature) {
+  const granularity = granularitySelect.value;
+  if (granularity === "block") {
+    return feature.properties.block_name;
+  }
+  if (granularity === "pref") {
+    return state.prefToBlock[feature.properties.pref_name] || null;
+  }
+  const muniCode = String(feature.properties.muni_code || "").padStart(5, "0");
+  const rec = state.electionData[muniCode];
+  return rec ? (state.prefToBlock[rec.pref] || null) : null;
+}
+
+export function getFieldedPartyCodes(blockName) {
+  const agg = state.blockAgg[blockName];
+  if (!agg || !agg.party_votes) return null;
+  const codes = new Set();
+  for (const [code, votes] of Object.entries(agg.party_votes)) {
+    if (typeof votes === "number" && votes > 0) codes.add(code);
+  }
+  return codes.size > 0 ? codes : null;
+}
+
 export function getSharesForCurrentGranularity(partyCode) {
   const granularity = granularitySelect.value;
   if (granularity === "muni") {
